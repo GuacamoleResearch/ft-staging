@@ -1,0 +1,2 @@
+hwdev_masher_b1=msh-ac30-019d-375e
+hwdev_masher_b2=msh-ac30-10a1-9910
