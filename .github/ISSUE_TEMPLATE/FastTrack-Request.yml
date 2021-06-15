@@ -16,8 +16,8 @@ body:
     required: true
 - type: input
   attributes:
-    label: Link to the Account Record in Sales Force:
-    description: ink to the Account Record in Sales Force:
+    label: Link to the Account Record in Sales Force
+    description: Link to the Account Record in Sales Force
   validations:
     required: true
 - type: textarea
