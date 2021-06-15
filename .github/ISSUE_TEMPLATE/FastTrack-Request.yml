@@ -1,0 +1,33 @@
+name: FastTrack Requests
+description: Request a FastTrack from a GitHub Account
+labels: Triage
+assignees: tspascoal
+body:
+- type: markdown
+  attributes:
+    value: |-
+      ## Company and customer information
+- type: input
+  attributes:
+    label: Customer Name
+    description: Customer Name
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: Link to the Account Record in Sales Force:
+    description: ink to the Account Record in Sales Force:
+  validations:
+    required: true
+ type: textarea
+  attributes:
+    label: "Customer contacts"
+    description: "Customer contacts (name, email)
+  validations:
+    required: false
+- type: input
+  attributes:
+    label: Customer's executive sponsor
+    description: Customer's executive sponsor
+  validations:
+    required: false
