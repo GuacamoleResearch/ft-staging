@@ -2,6 +2,7 @@ name: FastTrack Requests
 description: Request a FastTrack from a GitHub Account
 labels: Triage
 assignees: tspascoal
+title: FastTrack for $CustomerName
 body:
 - type: markdown
   attributes:
@@ -19,7 +20,7 @@ body:
     description: ink to the Account Record in Sales Force:
   validations:
     required: true
- type: textarea
+- type: textarea
   attributes:
     label: "Customer contacts"
     description: "Customer contacts (name, email)
