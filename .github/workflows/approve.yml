@@ -14,5 +14,5 @@ jobs:
         uses: tspascoal/labeler@override-number
         with:
           number: ${{ github.event.client_payload.command.resource.number }}
-          add-labels: "triage"
-          remove-labels: "approved"
+          remove-labels: "triage"
+          add-labels: "approved"
