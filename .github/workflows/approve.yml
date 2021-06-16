@@ -10,9 +10,16 @@ jobs:
         env:
           COMMAND_CONTEXT: ${{ toJSON(github.event.client_payload) }}
         run: echo "$COMMAND_CONTEXT"
+      - uses: phulsechinmay/rewritable-pr-comment@v0.2.1
+        with:
+          message: Fast Track approved by @${{ github.event.client_payload.command.user.login }}
+          GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
+          COMMENT_IDENTIFIER: "Approved FT"
+          ISSUE_ID: ${{ github.event.client_payload.command.resource.number }}
+
       - name: remove triage
         uses: tspascoal/labeler@override-number
         with:
           number: ${{ github.event.client_payload.command.resource.number }}
-          remove-labels: "triage"
-          add-labels: "approved"
+          remove-labels: "Triage"
+          add-labels: "Approved"
