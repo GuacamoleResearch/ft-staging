@@ -33,5 +33,4 @@ body:
     description: Customer's executive sponsor
   validations:
     required: false
-- type: textarea
   
