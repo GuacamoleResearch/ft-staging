@@ -18,16 +18,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2.1.0
 
-    - run: echo '${{ github.event.issue.body }}'
-      name: DEBUG
-      
-
     - name: set variables
       run: |
         cat << __EOF_MARKER__ > body.tmp
         ${{ github.event.issue.body }}
         __EOF_MARKER__
-        customer=$(grep -E '### Customer Name' -A 2 | tail '+3')    
+        customer=$(cat body.tmp | grep -E '### Customer Name' -A 2 | tail '+3')    
         echo FOUND CUSTOMER $customer
         if [ "$customer" == ""]; then
           couldn't determine customer
