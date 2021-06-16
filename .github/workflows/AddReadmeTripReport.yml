@@ -5,7 +5,7 @@ on:
       - labeled
 
 env:
-  ProjectId: 1
+  ProjectId: 2
   IssueColumName: Approved
   GH_USERNAME: ${{ github.event.schedule.user.login }}   
   
