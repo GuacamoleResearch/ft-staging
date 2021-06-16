@@ -26,7 +26,7 @@ jobs:
         customer=$(cat body.tmp | grep -E '### Customer Name' -A 2 | tail '+3')    
         echo FOUND CUSTOMER $customer
         if [ "$customer" == ""]; then
-          couldn't determine customer
+          echo "could not determine customer. Aborting"
           exit 1
         fi
         echo "customer=$customer" >> $GITHUB_ENV
