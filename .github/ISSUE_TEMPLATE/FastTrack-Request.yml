@@ -8,6 +8,8 @@ body:
   attributes:
     value: |-
       ## Company and customer information
+      
+      Please enter the customer information
 - type: input
   attributes:
     label: Customer Name
@@ -24,24 +26,37 @@ body:
   attributes:
     label: "Customer contacts"
     description: "Customer contacts (name, email)"
-    render: RENDER WHAT IS THIS?
+    render: Customer contacts in case we need to contact them directly.
   validations:
     required: false
 - type: input
   attributes:
     label: Customer's executive sponsor
-    description: Customer's executive sponsor
+    description: If the customer's has an executive sponsor, engagements without an executive sponsor have a lower success probabilty.
   validations:
     required: false
 - type: textarea
   id: ghcontacts
   attributes:
     label: GitHub Contacts
-    description: "GitHub Contacts (please use @mentions)"
+    description: |
+      GitHub Contacts (please use @mentions).
+      Feel free to add other relevant contacts (eg: csam)
     value: |
       - Account Manager:
       - Solution Engineer:
       - PS Sales:
   validations:
     required: true
-  
+- type: textarea
+  attributes:
+    label: Additional Context
+    description: |
+      Please include information that will help us prioritize this customer.  Include things such as:
+      - GHAS
+      - GHAE
+      - Migration to Actions
+      - etc.
+  validations:
+    required: false
+
