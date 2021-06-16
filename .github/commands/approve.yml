@@ -1,0 +1,30 @@
+trigger: approve
+title: Approve FastTrack
+description: Removes Fastrack from Triage and passes it to the approval stage
+
+surfaces:
+  - issue
+  
+steps:
+  - type: form
+    style: modal
+    body:
+      - type: dropdown
+        attributes:
+          label: Apprve
+          description: The organization to create the demo repository under
+          options:
+            - label: yes
+              value: true
+            - label: no
+              value: false
+        validations:
+          required: true
+
+    actions:
+      submit: Submit
+      cancel: Cancel
+    
+  #- type: repository_dispatch
+  #  eventType: approve
+ #   repository: github/fasttrack-staging
