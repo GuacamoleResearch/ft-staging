@@ -33,4 +33,15 @@ body:
     description: Customer's executive sponsor
   validations:
     required: false
+- type: textarea
+  id: ghcontacts
+  attributes:
+    label: GitHub Contacts
+    description: "GitHub Contacts (please use @mentions)
+    value: |
+      - Account Manager:
+      - Solution Engineer:
+      - PS Sales:
+  validations:
+    required: true
   
