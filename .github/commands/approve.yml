@@ -6,11 +6,12 @@ surfaces:
   - issue
   
 steps:
-  - type: form
-    style: modal
-    body:
-    - type: fill
-      template: "The FastTrack has been approved"
+  - type: fill
+    template: "The FastTrack has been approved"
+
+#  - type: form
+#   style: modal
+#    body:
 #      - type: dropdown
 #        attributes:
 #          label: Approve
