@@ -14,9 +14,9 @@ steps:
           label: Apprve
           description: The organization to create the demo repository under
           options:
-            - label: yes
+            - label: 🟢 go
               value: approve
-            - label: no
+            - label: 🔴 no go
               value: reject
         validations:
           required: true
