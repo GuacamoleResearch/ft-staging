@@ -37,7 +37,7 @@ body:
   id: ghcontacts
   attributes:
     label: GitHub Contacts
-    description: "GitHub Contacts (please use @mentions)
+    description: "GitHub Contacts (please use @mentions)"
     value: |
       - Account Manager:
       - Solution Engineer:
