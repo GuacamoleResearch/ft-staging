@@ -25,6 +25,6 @@ steps:
       submit: Submit
       cancel: Cancel
     
-  #- type: repository_dispatch
-  #  eventType: approve
- #   repository: github/fasttrack-staging
+  - type: repository_dispatch
+    eventType: approve
+    repository: github/fasttrack-staging
