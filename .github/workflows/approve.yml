@@ -10,3 +10,15 @@ jobs:
         env:
           COMMAND_CONTEXT: ${{ toJSON(github.event.client_payload) }}
         run: echo "$COMMAND_CONTEXT"
+      - name: remove triage
+        uses: buildsville/add-remove-label@v1
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          label: triage
+          type: remove
+      - name: add approved
+        uses: buildsville/add-remove-label@v1
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          label: triage
+          type: remove
