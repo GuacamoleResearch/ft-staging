@@ -9,8 +9,8 @@ steps:
   - type: form
     style: modal
     body:
-      - type: fill
-        template: "The FastTrack has been approved"
+    - type: fill
+      template: "The FastTrack has been approved"
 #      - type: dropdown
 #        attributes:
 #          label: Approve
