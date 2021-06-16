@@ -11,8 +11,8 @@ steps:
     body:
       - type: dropdown
         attributes:
-          label: Apprve
-          description: The organization to create the demo repository under
+          label: Approve
+          description: Yes this fastrack approved?
           options:
             - label: 🟢 go
               value: approve
