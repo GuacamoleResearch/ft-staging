@@ -24,6 +24,7 @@ body:
   attributes:
     label: "Customer contacts"
     description: "Customer contacts (name, email)"
+    render: RENDER WHAT IS THIS?
   validations:
     required: false
 - type: input
@@ -38,6 +39,15 @@ body:
     label: TEST LABEL
     description: THIS IS A DESCRIPTION
     placeholder: THIS IS A PLACEHOLDER
+  validations:
+    required: true
+- type: dropdown
+  id: type
+  attributes:
+    label: FT Type
+    options:
+      - Depth
+      - Breadth
   validations:
     required: true
  
