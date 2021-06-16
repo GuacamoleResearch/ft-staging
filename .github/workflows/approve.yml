@@ -18,7 +18,7 @@ jobs:
       - name: remove triage
         uses: tspascoal/labeler@override-number
         with:
-#          number: ${{ github.event.client_payload.command.resource.number }}
+          number: ${{ github.event.client_payload.command.resource.number }}
           GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
           remove-labels: "Triage"
           add-labels: "Approved"
