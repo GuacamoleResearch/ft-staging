@@ -10,7 +10,7 @@ jobs:
         env:
           COMMAND_CONTEXT: ${{ toJSON(github.event.client_payload) }}
         run: echo "$COMMAND_CONTEXT"
-      - uses: phulsechinmay/rewritable-pr-comment@v0.2.1
+      - uses: phulsechinmay/rewritable-pr-comment@v0.3.0
         with:
           message: Fast Track approved by @${{ github.event.client_payload.command.user.login }}
           GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
