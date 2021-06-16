@@ -4,7 +4,6 @@ labels: Triage
 assignees: tspascoal
 title: FastTrack for $CustomerName
 body:
-## Company and customer information
 - type: markdown
   attributes:
     value: |-
