@@ -10,12 +10,10 @@ jobs:
         env:
           COMMAND_CONTEXT: ${{ toJSON(github.event.client_payload) }}
         run: echo "$COMMAND_CONTEXT"
-      - uses: phulsechinmay/rewritable-pr-comment@v0.3.0
+      - uses: marocchino/sticky-pull-request-comment@v2
         with:
           message: Fast Track approved by @${{ github.event.client_payload.command.user.login }}
-          GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
-          COMMENT_IDENTIFIER: "Approved FT"
-          ISSUE_ID: ${{ github.event.client_payload.command.resource.number }}
+          number: ${{ github.event.client_payload.command.resource.number }}
 
       - name: remove triage
         uses: tspascoal/labeler@override-number
