@@ -9,17 +9,19 @@ steps:
   - type: form
     style: modal
     body:
-      - type: dropdown
-        attributes:
-          label: Approve
-          description: Yes this fastrack approved?
-          options:
-            - label: 🟢 go
-              value: approve
-            - label: 🔴 no go
-              value: reject
-        validations:
-          required: true
+      - type: fill
+        template: "The FastTrack has been approved"
+#      - type: dropdown
+#        attributes:
+#          label: Approve
+#          description: Yes this fastrack approved?
+#          options:
+#            - label: 🟢 go
+#              value: approve
+#            - label: 🔴 no go
+#              value: reject
+#        validations:
+#          required: true
 
     actions:
       submit: Submit
