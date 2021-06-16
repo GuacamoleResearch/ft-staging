@@ -1,0 +1,69 @@
+name: Create Readme
+on: 
+  issues:
+    types:
+      - labeled
+
+env:
+  ProjectId: 1
+  IssueColumName: Approved
+  GH_USERNAME: ${{ github.event.schedule.user.login }}   
+  
+jobs:
+  Approve:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'Confirmed'
+        
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.1.0
+
+    - name: set variables
+      run: |
+        cat << __EOF_MARKER__ > body.tmp
+        ${{ github.event.issue.body }}
+        __EOF_MARKER__
+        customer=$(grep -E '### Customer Name' -A 2 | tail '+3')    
+        echo FOUND CUSTOMER $customer
+        echo "customer=$customer" >> $GITHUB_ENV
+        ReadmeDirectory="${{ github.event.issue.number }}-$customer"
+        echo FOUND DIRECTORY $ReadmeDirectory
+        echo "ReadmeDirectory=$ReadmeDirectory" >> $GITHUB_ENV
+        # TODO: more cleanup is necessary on the branch name
+        # BEWARE CODE FOR BRANCH NAME IS DUPLICATED IT IS REPLICATED THE OTHER JOB
+        branchName=${{ github.event.issue.number }}-$(echo "$customer" | tr ' ' '-' | sed 's/[ \t\n\r]*$//')
+        # NOTE: This code will break if the customer name includes illegal characters for branch or path names
+        echo "CreateReadmeBranch=FastTrack/$branchName" >> $GITHUB_ENV
+     
+    - name: create branch
+      run: |
+        echo creating branch [$CreateReadmeBranch]
+        git checkout -b "$CreateReadmeBranch"
+    
+    - name: configure git
+      run: |
+        git config --global user.email "$GH_USERNAME"
+        git config --global user.name "$GH_USERNAME@github.com"
+
+    - name: create readme from template and add to branch
+      run: |
+        mkdir "$GITHUB_WORKSPACE/Engagement/$ReadmeDirectory"
+        cp "$GITHUB_WORKSPACE/.github/templates/readme.md" "$GITHUB_WORKSPACE/Engagement/$ReadmeDirectory/readme.md"
+        git add "$GITHUB_WORKSPACE/Engagement/$ReadmeDirectory/readme.md"
+        cp "$GITHUB_WORKSPACE/.github/templates/tripreport.md" "$GITHUB_WORKSPACE/Engagement/$ReadmeDirectory/TripReport.md"
+        git add "$GITHUB_WORKSPACE/Engagement/$ReadmeDirectory/TripReport.md"
+        
+    - name: commit and push changes
+      run: |
+        git commit -m "Add $customer Readme from template #${{ github.event.issue.number }}"
+        git push --set-upstream origin "$CreateReadmeBranch"
+   
+    - name: Add Issue to Project
+      uses: srggrs/assign-one-project-github-action@1.2.0
+      with:
+        project: 'https://github.com/${{ github.repository }}/projects/${{ env.ProjectId }}'
+        column_name:  ${{ env.IssueColumName }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}     
+    
+          
