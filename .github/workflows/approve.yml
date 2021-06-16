@@ -1,0 +1,12 @@
+name: Approved/rejected FT
+on:
+  repository_dispatch:
+    types: approve
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output command context
+        env:
+          COMMAND_CONTEXT: ${{ toJSON(github.event.client_payload) }}
+        run: echo "$COMMAND_CONTEXT"
