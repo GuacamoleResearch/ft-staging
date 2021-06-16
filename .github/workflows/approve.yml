@@ -11,14 +11,8 @@ jobs:
           COMMAND_CONTEXT: ${{ toJSON(github.event.client_payload) }}
         run: echo "$COMMAND_CONTEXT"
       - name: remove triage
-        uses: tspascoal/add-remove-label@override-number
+        uses: tspascoal/labeler@override-number
         with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          label: triage
-          type: remove
-      - name: add approved
-        uses: buildsville/add-remove-label@v1
-        with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          label: triage
-          type: remove
+          number: ${{ github.event.client_payload.command.resource.number }}
+          add-labels: "triage"
+          remove-labels: "approved"
