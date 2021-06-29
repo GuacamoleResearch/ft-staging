@@ -34,7 +34,7 @@ Should we have a triage command????
 
 #### End date is reached (NOT calculated)
 
-This date is not calculated, so we need to add it to the fields
+This date is not calculated, so we need to add it to the fields (or is it the `follow up` field?)
 
 Every day a cron action will scan for issues in the state `delivering` or `done` and if the end date has been reached it will send a reminder to whom the issue is assigned to with
 actions that need to be performed:
