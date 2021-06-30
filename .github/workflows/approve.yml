@@ -17,7 +17,7 @@ jobs:
           number: ${{ github.event.client_payload.command.resource.number }}
 
       - name: remove triage
-        uses: tspascoal/labeler@override-number
+        uses: tspascoal/labeler@master
         with:
           number: ${{ github.event.client_payload.command.resource.number }}
           GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
