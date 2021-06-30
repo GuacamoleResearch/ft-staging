@@ -6,6 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Output command context
         env:
           COMMAND_CONTEXT: ${{ toJSON(github.event.client_payload) }}
@@ -22,3 +23,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
           remove-labels: "Triage"
           add-labels: "Approved"
+      - name: add tasks to issue (uses template)
+        uses: ./actions/append-to-issue
+        with:
+          number: ${{ github.event.client_payload.command.resource.number }}
+          content-path: '.github/templates/fasttrack-tasks.md'
+
