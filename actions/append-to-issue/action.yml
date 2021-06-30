@@ -1,0 +1,25 @@
+name: 'Your name here'
+description: 'Appends content to an issue body in idempotent fashion'
+author: 'Your name or organization here'
+inputs:
+  number:
+    required: true
+    description: 'Issue number'
+  content-path:
+    required: true
+    description: The path of the file with the content to be appened to the issue
+  marker:
+    required: true
+    description: the marker to be used to detect if the content has been already added (not visible on the body)
+    default: __CONTENT_MARKER__
+  token:
+    required: true
+    description: auth token
+    default: ${{ github.token }}
+outputs:
+  content-added:
+    description: Has the content been added? (true or false)
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
