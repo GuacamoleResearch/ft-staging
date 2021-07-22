@@ -10,4 +10,6 @@ jobs:
     
     steps:
     - name: Get issue context
-      run: echo "${{ github.event.issue }}"
+      run: | 
+        echo "${{ github.event.issue.name }}"
+        echo "${{ github.event.issue.id }}"
