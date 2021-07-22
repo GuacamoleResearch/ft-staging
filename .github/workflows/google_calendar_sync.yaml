@@ -11,7 +11,7 @@ jobs:
     steps:
     - name: Get issue context
       run: | 
-        echo "${{ github.event.issue.issue_name }}"
         echo "${{ github.event.issue.id }}"
-        echo "${{ github.event.issue.issue-name }}"
         echo "${{ github.event.issue.title }}"
+        echo "${{ github.event.issue.assignee }}"
+        echo "${{ github.event.issue.assignees }}"
