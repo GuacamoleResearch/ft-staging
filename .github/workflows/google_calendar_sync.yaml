@@ -1,0 +1,13 @@
+name: Google Calendar Sync
+
+on:
+  issues:
+    types: [opened, edited, reopened, assigned, unassigned]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Get issue context
+      run: echo "${{ github.event.issue }}"
