@@ -2,7 +2,7 @@ name: Google Calendar Sync
 
 on:
   issues:
-    types: [opened, edited, transferred, reopened, assigned, unassigned]
+    types: [opened, edited, reopened, assigned, unassigned]
 
 jobs:
   update:
