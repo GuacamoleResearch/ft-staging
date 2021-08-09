@@ -8,11 +8,11 @@ The issues can be in multiple repositories.
 
 The notification consists of adding a comment with mention to issue assignees plus the content of the notification file.
 
-## Code 
+## Code
 
 > First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
 
-Install the dependencies  
+Install the dependencies
 ```bash
 $ npm install
 ```
@@ -22,12 +22,12 @@ Build the typescript and package it for distribution
 $ npm run build && npm run package
 ```
 
-Run the tests :heavy_check_mark:  
+Run the tests :heavy_check_mark:
 ```bash
 $ npm test
 ```
 
-## Usage.
+## Usage
 
 ```YAML
 uses: ./actions/send-unclosed-issue-notification
