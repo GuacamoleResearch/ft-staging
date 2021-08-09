@@ -1,0 +1,38 @@
+name: 'get-unclosed-issue-paste-due-date'
+description: 'Gets for all unclosed issues on a given project/column that have exceeded the due date by a certain period (Be careful it can be on multiple repos)'
+author: 'tspascoal'
+inputs:
+  number:
+    required: true
+    description: 'Project number'
+  columns:
+    required: true
+    description: List of columns (comma separated) to watch issues in
+  token:
+    required: true
+    description: auth token
+  due-date-threshold:
+    required: true
+    description: |
+      The threshold after the due date for which the notification will be sent.
+      Specified in a ISO 8601 Duration format. See https://en.wikipedia.org/wiki/ISO_8601#Durations
+  due-date-field-name:
+    required: true
+    description: The name of the field that contains the due date
+  organization:
+    required: false
+    description: the name of the organization where projects are stored (if not specified uses current org)
+  filter-labels:
+    required: false
+    description: Issues with the (comma separated) labels list will be ignored
+outputs:
+  has-multiple-repos:
+    description: flag that indicates if the issues are on different repos
+  issue-numbers:
+    description: Comma separated list of issues found (numbers only).
+  issues-list:
+    description: Comma separated list of issues in the format owner/repo/number
+  
+runs:
+  using: 'node12'
+  main: 'dist/index.js'

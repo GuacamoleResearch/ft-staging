@@ -1,0 +1,19 @@
+name: 'send-notification-issues'
+description: 'Notify issue assignees with a issue comment based on a file'
+author: 'tspascoal'
+inputs:
+  token:
+    required: true
+    description: auth token
+  content-path:
+    required: true
+    description: notification file path with content to be sent
+  issues-list:
+    required: false
+    description: |
+      Comma separated list of issues in the format owner/repo/number or just number
+      If number than the current repository will be used
+  
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
