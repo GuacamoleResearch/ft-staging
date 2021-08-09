@@ -20,19 +20,19 @@ jobs:
         
       - name: buld and test append-to-issue
         run: |
-          npm run ci
+          npm ci
           npm run all
         working-directory: actions//append-to-issue
 
       - name: buld and test get-unclosed-issue-passed-due-date
         run: |
-          npm run ci
+          npm ci
           npm run all
         working-directory: actions/get-unclosed-issue-passed-due-date
         
       - name: buld and test send-notification-issues
         run: |
-          npm run ci
+          npm ci
           npm run all
         working-directory: actions/send-notification-issues
 
