@@ -1,0 +1,20 @@
+name: 'get-unclosed-issue-paste-due-date'
+description: 'Adds an issue to a board (v2)'
+author: 'tspascoal'
+inputs:
+  project-number:
+    required: true
+    description: 'Project number'
+  issue-number:
+    required: true
+    description: 'Issue number to add (from the current repo)' 
+  token:
+    required: true
+    description: auth token
+outputs:
+  title:
+    description: The title of the issue that was added
+  
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
