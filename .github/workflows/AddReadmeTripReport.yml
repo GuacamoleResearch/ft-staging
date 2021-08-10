@@ -63,11 +63,19 @@ jobs:
         git push --set-upstream origin "$CreateReadmeBranch"
    
     - name: Add Issue to Project
+      if: false
       uses: srggrs/assign-one-project-github-action@1.2.0
       with:
         project: 'https://github.com/${{ github.repository }}/projects/${{ env.ProjectId }}'
         column_name:  ${{ env.IssueColumName }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}     
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Add issue to org board
+      uses: ./actions/add-issue-to-project
+      with:
+        project-number: TODO
+        issue-number: ${{ github.event.issue.number }}
+        token: ${{ secrets.ORG_PAT }}
     
           
