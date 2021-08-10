@@ -11,6 +11,7 @@ inputs:
   token:
     required: true
     description: auth token
+
 outputs:
   title:
     description: The title of the issue that was added
