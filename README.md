@@ -8,7 +8,7 @@ Automation test repository before code is integrated into [fasttrack repository]
 
 ## Questions for the team
 - How much data should we embed in Project board custom field and how much should be in the issues itself...
-  - Start and End Dates (Title or fields)
+  - Start and End Dates (Title and fields for now)
   - Follow-up date triggers (Field)
   - OKR information (?)
   - Organizations (?)
@@ -17,11 +17,15 @@ Automation test repository before code is integrated into [fasttrack repository]
 
 ## Process Overview
 1. TRIAGE (No status on the project board)
-    - **Trigger:** Request is opened, filled out by AM/CSM/CSA/SE/TSAM, and automatically labeled `Triage` and assigned to FastTrack Ops (dmckinstry) via the `ISSUE_TEMPLATE`
-    - Workflow moves the issue to the project (no status) and appends the checklist to the description
-    - Requester and FastTrack Ops iterate on preapproval process
-    - FastTrack Ops presents to customer, documents results
-2. APPROVED (1-Approved)
+    - **Trigger:** Request is opened, filled out by AM/CSM/CSA/SE/TSAM, automatically labeled `Triage` and assigned to FastTrack Ops (dmckinstry) via the `ISSUE_TEMPLATE`
+    - Workflow moves the issue onto the project (no status), sets the FollowDate to tomorrow, and appends the checklist to the description
+    - Requester and FastTrack Ops iterate on preapproval process (outside of any automation)
+    - FastTrack Ops presents to customer and documents the results
+2. REJECTED (Closed)
+    - **Trigger:** FastTrack Ops issues a "/REJECT" command; this can be at any time during the entire engagement process but will typically be before or during the FastTrack Kickoff call (first call) with the customer
+    - Issue is removed from the project board and closed
+    - @mention is appended to the issue discussion via automation notifying the person who opened the request and @dmckinstry (e.g., "*:point_up: @someone @dmckinstry - This request has been rejected per tha above comments. Please let us know if you believe this was a mistake.*")
+3. APPROVED (1-Approved)
     - **Trigger:** FastTrack Ops approves via the "/APPROVE" command
     - Workflow removes the `Triage` label and moves the issue to the `1-Approved` status in the project board
       - @tspascoal :point_right: I do not anticipate the need to auto-assign as part of the approval process. It is possible that we will know the right assignee but that usually follows looking at the schedule.  And if we do know, I am concerned about too much clutter for the DevOps Architect before things settle... Your thoughts?
@@ -30,18 +34,38 @@ Automation test repository before code is integrated into [fasttrack repository]
 4. DELIVERING (3-Delivering)
     - **Trigger:** Workflow moves the request into the `3-Delivering` column the morning of the start date.
 
-## Exception Reporting
+## Commands
+- "/REJECT" is issued at any time to close out and clean up a request (see "REJECTED" in the **Process Overview**)
+- "/APPROVE" is used to move a request from TRIAGE to APPROVED (see "APPROVED" in the **Process Overview**)
+
+## Reporting
 
 A scheduled workfow will scan through all open requests every morning and append/notify participants when there are exceptions or follow-up needed.
 
-- TBD --> include exception name, trigger, reminder frequency, target audience and description/message
-
+- *Status report*
+  - **Trigger:** Manual (may change to scheduled in the future)
+  - **Format:** Delivered in a known discussion thread in the FastTrack repo, with prior runs appended to the bottom of the discussion and new runs overwriting the discussion Descritpion
+  - Includes contents from the current status report workflow...  "Currently delivering" and "starting next week" with links to the request issues
+  - New content for Approved list and summary count of triage requests
+- *Calendar report*
+  - **Trigger:** Manual (may change to scheduled in the future)
+  - **Format:** Delivered in a known discussion thread in the FastTrack repo, with prior runs appended to the bottom of the discussion and new runs overwriting the discussion Descritpion
+  - Simulate the existing calednar spreadsheet with dates (weeks) in columns, DevOps Architects in the rows, and customer names in the individual cells based on assigment.  Note that an architect may be assigned multiple engagements in a week (but our delivery model doesn't support that)
+- Exception reports
+  - **Trigger:** Run daily on schedule but "debounce" logic in individual reports
+  - **Format:** Appended to the discussion in the individual (exception) request issue
+  - **Scheduling Exception** *(TBD - for Dave while in **2-Scheduled** to make sure we aren't scheduled while still missing data)* 
+  - **Delivery Exception** *(TBD - for Dave+Architects while in **3-Delivering** to make sure we have all data required to run the engagement captured)* 
+  - **Wrap-up Reminder** *(TBD - for Architects while in **3-Delivering** and half way through the engaged to remind of wrap-up stuff... making sure the right meetings are scheduled, the right people are invite, the right data is captured, etc.)*
+  - **Post-Delivery Exception**
+    - *(TBD - for Architects while in **4-Done** and 2+ work days after the engagement completes to make sure all the post-engagement Architect checkboxes are checked)* 
+    - *(TBD - for Dave while in **4-Done** and 7+ work days after the engagement completes to make sure all the post-engagement operations checkboxes are checked)*
 
 ## Workflow/Automations
 
 The state of the issue can be done either via commands or tags (preferably commands)
 
-### Commands
+
 
 #### Triaged
 
