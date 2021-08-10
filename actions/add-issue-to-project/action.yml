@@ -1,6 +1,7 @@
 name: 'get-unclosed-issue-paste-due-date'
 description: 'Adds an issue to a board (v2)'
 author: 'tspascoal'
+
 inputs:
   project-number:
     required: true
