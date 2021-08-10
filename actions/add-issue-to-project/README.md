@@ -1,9 +1,9 @@
-# Sends notifications for due issues after X days
+# Adds an issue to a project (v2)
 
-Sends a notification for all issues in a board/state that have passed their due by X days.
+Adds a issue (in the current repository) to a project.
 
-This only works for projects (beta)
-
+If the issue is alreaby part of the board nothing is changed.
+ 
 ## Code 
 
 > First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
@@ -26,10 +26,9 @@ $ npm test
 ## Usage.
 
 ```YAML
-uses: ./actions/send-unclosed-issue-notification
+uses: ./actions/add-issue-to-project
 with:
-  number: PROJECT_NUMBER
-  column: PROJECT_COLUMN_NAME
-  notification-threshold: 1s
-  content-path: PATH_TO_TEMPLATE_OF_NOTIFICATION
+  project-number: PROJECT_NUMBER
+  issues-number: ISSUE_NUMBER
+  token: A TOKEN WITH ORG WRITE SCOPE
 ```

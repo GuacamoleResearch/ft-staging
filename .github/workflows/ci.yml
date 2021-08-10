@@ -36,6 +36,11 @@ jobs:
           npm run all
         working-directory: actions/send-notification-issues
 
+      - name: buld and test /add-issue-to-project
+        run: |
+          npm ci
+          npm run all
+        working-directory: actions/add-issue-to-project
 
 
       
