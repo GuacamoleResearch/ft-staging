@@ -45,18 +45,18 @@ function getHeaders() {
         'GraphQL-Features': 'projects_next_graphql'
     };
 }
-function getProjectId(octokit, number, organization) {
+function getProject(octokit, number, organization) {
     return __awaiter(this, void 0, void 0, function* () {
-        core.debug(`Getting id for project ${number} in org ${organization}`);
+        core.debug(`Getting project ${number} in org ${organization}`);
         const result = yield octokit.graphql(queries_1.GET_PROJECT_QUERY, {
             organization,
             number,
             headers: getHeaders()
         });
         if (result.organization.projectNext === null) {
-            throw new Error(`No project found for number ${number}`);
+            throw new Error(`No project found with number ${number}`);
         }
-        return result.organization.projectNext.id;
+        return result;
     });
 }
 function addIssueToProject(octokit, projectId, contentId) {
@@ -69,6 +69,48 @@ function addIssueToProject(octokit, projectId, contentId) {
         return result.addProjectNextItem.projectNextItem.id;
     });
 }
+function getFieldByName(fieldNodes, fieldName) {
+    return fieldNodes.find((field) => fieldName.localeCompare(field.name) === 0);
+}
+function getFieldValueId(fieldValue, fieldMetadata) {
+    if (!fieldMetadata.settings)
+        return fieldValue;
+    const settings = JSON.parse(fieldMetadata.settings);
+    core.debug(`GOING TO LOOK AT ${JSON.stringify(fieldMetadata)}`);
+    if (!settings || !settings.options)
+        return fieldValue;
+    const options = settings.options;
+    const option = options.find(o => o.name === fieldValue);
+    if (option == null) {
+        throw new Error(`No option found with name ${fieldValue}`);
+    }
+    return option.id;
+}
+function setIssueBoardFields(octokit, project, setFields, issueId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let setFieldsGraphQL = '';
+        const projectId = project.organization.projectNext.id;
+        for (const fieldName of Object.keys(setFields)) {
+            const fieldValue = setFields[fieldName];
+            const fieldMetadata = getFieldByName(project.organization.projectNext.fields.nodes, fieldName);
+            const realFieldValue = getFieldValueId(fieldValue, fieldMetadata);
+            setFieldsGraphQL += `set_${fieldName.replace(" ", "")} : updateProjectNextItemField(input: {
+      projectId: $projectId itemId: $issueId fieldId: "${fieldMetadata.id}" value: "${realFieldValue}"
+      }) { projectNextItem { id } }
+    `;
+        }
+        const mutation = `mutation ($projectId: ID!, $issueId: ID!) {
+      ${setFieldsGraphQL}
+    }`;
+        // TODO: Field must have selections (field 'updateProjectNextItemField' returns UpdateProjectNextItemFieldPayload but has no selections. Did you mean 'updateProjectNextItemField { ... }'?)
+        core.debug(mutation);
+        yield octokit.graphql(mutation, {
+            projectId,
+            issueId,
+            headers: getHeaders()
+        });
+    });
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -76,9 +118,15 @@ function run() {
             const issueNumber = parseInt(core.getInput('issue-number', { required: true }));
             const token = core.getInput('token');
             const organization = core.getInput('organization') || github.context.repo.owner;
+            const setFieldsJSONString = core.getInput('set-fields', {
+                required: false,
+                trimWhitespace: true
+            });
             core.debug(`Looking for project ${projectNumber}`);
             const octokit = github.getOctokit(token);
-            const projectId = yield getProjectId(octokit, projectNumber, organization);
+            const project = yield getProject(octokit, projectNumber, organization);
+            core.debug(JSON.stringify(project));
+            const projectId = project.organization.projectNext.id;
             core.debug(`found projectid ${projectId} for project ${projectNumber}`);
             const issue = yield octokit.rest.issues.get({
                 owner: utils_1.context.repo.owner,
@@ -86,7 +134,12 @@ function run() {
                 issue_number: issueNumber
             });
             core.debug(`Adding issue ${issueNumber} with id ${issue.data.node_id} to project ${projectNumber}`);
-            yield addIssueToProject(octokit, projectId, issue.data.node_id);
+            const issueInBoardId = yield addIssueToProject(octokit, projectId, issue.data.node_id);
+            if (setFieldsJSONString.length > 0) {
+                core.debug(`Setting fields ${setFieldsJSONString}`);
+                const setFields = JSON.parse(setFieldsJSONString);
+                yield setIssueBoardFields(octokit, project, setFields, issueInBoardId);
+            }
             core.setOutput('title', issue.data.title);
         }
         catch (error) {
@@ -111,9 +164,15 @@ query($organization: String!, $number: Int!){
     organization(login: $organization){
       projectNext(number: $number) {
        id
-       title      
+       fields(first: 100) {
+        nodes { 
+          id
+          name
+          settings
+        }
       }
     }
+  }
 }`;
 exports.ADD_ISSUE_TO_PROJECT = `
 mutation ($projectId: ID!, $contentId: ID!) {

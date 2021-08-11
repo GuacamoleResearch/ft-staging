@@ -6,9 +6,15 @@ query($organization: String!, $number: Int!){
     organization(login: $organization){
       projectNext(number: $number) {
        id
-       title      
+       fields(first: 100) {
+        nodes { 
+          id
+          name
+          settings
+        }
       }
     }
+  }
 }`;
 exports.ADD_ISSUE_TO_PROJECT = `
 mutation ($projectId: ID!, $contentId: ID!) {

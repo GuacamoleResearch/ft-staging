@@ -12,6 +12,12 @@ inputs:
   token:
     required: true
     description: auth token
+  set-fields:
+    required: false
+    description: |
+      'Set fields to the issue. Input an object with field values { "FIELD_NAME": "VALUE", "FIELD2" : "Dummy"}'
+      eg: '{ "status": "ok" }'
+
 
 outputs:
   title:

@@ -3,6 +3,8 @@
 Adds a issue (in the current repository) to a project.
 
 If the issue is alreaby part of the board nothing is changed.
+
+Optional can also be used to set field values.
  
 ## Code 
 
@@ -31,4 +33,5 @@ with:
   project-number: PROJECT_NUMBER
   issues-number: ISSUE_NUMBER
   token: A TOKEN WITH ORG WRITE SCOPE
+  set-fields: {'status': 'Closed', myField: "2"} # optional
 ```

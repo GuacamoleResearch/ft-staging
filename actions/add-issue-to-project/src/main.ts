@@ -18,12 +18,12 @@ function getHeaders(): RequestHeaders {
   }
 }
 
-async function getProjectId(
+async function getProject(
   octokit: Octokit,
   number: Number,
   organization: string
-): Promise<string> {
-  core.debug(`Getting id for project ${number} in org ${organization}`)
+): Promise<any> {
+  core.debug(`Getting project ${number} in org ${organization}`)
 
   const result: any = await octokit.graphql(GET_PROJECT_QUERY, {
     organization,
@@ -35,7 +35,7 @@ async function getProjectId(
     throw new Error(`No project found with number ${number}`)
   }
 
-  return result.organization.projectNext.id
+  return result
 }
 
 async function addIssueToProject(
@@ -52,6 +52,76 @@ async function addIssueToProject(
   return result.addProjectNextItem.projectNextItem.id
 }
 
+function getFieldByName(fieldNodes: any[], fieldName: string): any {
+  return fieldNodes.find(
+    (field: {name: string}) => fieldName.localeCompare(field.name) === 0
+  )
+}
+
+function getFieldValueId(fieldValue: string, fieldMetadata: any): string {
+  if (!fieldMetadata.settings) return fieldValue
+
+  const settings = JSON.parse(fieldMetadata.settings)
+
+  core.debug(`GOING TO LOOK AT ${JSON.stringify(fieldMetadata)}`)
+
+  if (!settings || !settings.options) return fieldValue
+
+  const options: Option[] = settings.options
+
+  const option = options.find(o => o.name === fieldValue)
+
+  if (option == null) {
+    throw new Error(`No option found with name ${fieldValue}`)
+  }
+
+  return option.id
+}
+
+async function setIssueBoardFields(
+  octokit: Octokit,
+  project: any,
+  setFields: any,
+  issueId: string
+): Promise<void> {
+  let setFieldsGraphQL = ''
+  const projectId = project.organization.projectNext.id
+
+  for (const fieldName of Object.keys(setFields)) {
+    const fieldValue = setFields[fieldName]
+
+    const fieldMetadata = getFieldByName(
+      project.organization.projectNext.fields.nodes,
+      fieldName
+    )
+
+    const realFieldValue = getFieldValueId(fieldValue, fieldMetadata)
+
+    setFieldsGraphQL += `set_${fieldName.replace(
+      ' ',
+      ''
+    )} : updateProjectNextItemField(input: {
+      projectId: $projectId itemId: $issueId fieldId: "${
+        fieldMetadata.id
+      }" value: "${realFieldValue}"
+      }) { projectNextItem { id } }
+    `
+  }
+
+  const mutation = `mutation ($projectId: ID!, $issueId: ID!) {
+      ${setFieldsGraphQL}
+    }`
+
+  // TODO: Field must have selections (field 'updateProjectNextItemField' returns UpdateProjectNextItemFieldPayload but has no selections. Did you mean 'updateProjectNextItemField { ... }'?)
+  core.debug(mutation)
+
+  await octokit.graphql(mutation, {
+    projectId,
+    issueId,
+    headers: getHeaders()
+  })
+}
+
 async function run(): Promise<void> {
   try {
     const projectNumber: number = parseInt(
@@ -64,11 +134,20 @@ async function run(): Promise<void> {
     const organization =
       core.getInput('organization') || github.context.repo.owner
 
+    const setFieldsJSONString = core.getInput('set-fields', {
+      required: false,
+      trimWhitespace: true
+    })
+
     core.debug(`Looking for project ${projectNumber}`)
 
     const octokit = github.getOctokit(token)
 
-    const projectId = await getProjectId(octokit, projectNumber, organization)
+    const project = await getProject(octokit, projectNumber, organization)
+
+    core.debug(JSON.stringify(project))
+
+    const projectId = project.organization.projectNext.id
 
     core.debug(`found projectid ${projectId} for project ${projectNumber}`)
 
@@ -82,7 +161,18 @@ async function run(): Promise<void> {
       `Adding issue ${issueNumber} with id ${issue.data.node_id} to project ${projectNumber}`
     )
 
-    await addIssueToProject(octokit, projectId, issue.data.node_id)
+    const issueInBoardId = await addIssueToProject(
+      octokit,
+      projectId,
+      issue.data.node_id
+    )
+
+    if (setFieldsJSONString.length > 0) {
+      core.debug(`Setting fields ${setFieldsJSONString}`)
+      const setFields = JSON.parse(setFieldsJSONString)
+
+      await setIssueBoardFields(octokit, project, setFields, issueInBoardId)
+    }
 
     core.setOutput('title', issue.data.title)
   } catch (error) {

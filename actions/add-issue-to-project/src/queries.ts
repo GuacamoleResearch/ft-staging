@@ -3,9 +3,15 @@ query($organization: String!, $number: Int!){
     organization(login: $organization){
       projectNext(number: $number) {
        id
-       title      
+       fields(first: 100) {
+        nodes { 
+          id
+          name
+          settings
+        }
       }
     }
+  }
 }`
 
 export const ADD_ISSUE_TO_PROJECT = `
