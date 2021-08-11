@@ -70,11 +70,4 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Add issue to org project
-      uses: ./actions/add-issue-to-project
-      with:
-        project-number: TODO
-        issue-number: ${{ github.event.issue.number }}
-        token: ${{ secrets.ORG_PAT }}
-    
           

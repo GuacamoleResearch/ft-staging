@@ -29,3 +29,13 @@ jobs:
           number: ${{ github.event.client_payload.command.resource.number }}
           content-path: '.github/templates/fasttrack-tasks.md'
 
+      - name: Add issue to org project
+        uses: ./actions/add-issue-to-project
+        with:
+          project-number: TODO
+          issue-number: ${{ github.event.issue.number }}
+          token: ${{ secrets.ORG_PAT }}
+          set-fields: '[{ "Status": "Approved" }]'
+    
+
+
