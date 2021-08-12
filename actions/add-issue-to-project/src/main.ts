@@ -63,13 +63,11 @@ function getFieldValueId(fieldValue: string, fieldMetadata: any): string {
 
   const settings = JSON.parse(fieldMetadata.settings)
 
-  core.debug(`GOING TO LOOK AT ${JSON.stringify(fieldMetadata)}`)
-
   if (!settings || !settings.options) return fieldValue
 
   const options: Option[] = settings.options
 
-  const option = options.find(o => o.name === fieldValue)
+  const option = options.find(o => fieldValue.localeCompare(o.name))
 
   if (option == null) {
     throw new Error(`No option found with name ${fieldValue}`)
@@ -89,6 +87,8 @@ async function setIssueBoardFields(
 
   for (const fieldName of Object.keys(setFields)) {
     const fieldValue = setFields[fieldName]
+
+    core.debug(`setting field ${fieldName}`)
 
     const fieldMetadata = getFieldByName(
       project.organization.projectNext.fields.nodes,
