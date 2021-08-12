@@ -93,9 +93,9 @@ function setIssueBoardFields(octokit, project, setFields, issueId) {
             const fieldValue = setFields[fieldName];
             core.debug(`setting field ${fieldName}`);
             const fieldMetadata = getFieldByName(project.organization.projectNext.fields.nodes, fieldName);
-            if (fieldMetadata == null) {
-                core.warning(`field definiton ${fieldName} not found`);
-                core.debug(`fields=${project.organization.projectNext.fields.nodes}`);
+            if (!fieldMetadata) {
+                core.warning(`field definition ${fieldName} not found`);
+                core.debug(`fields=${JSON.stringify(project.organization.projectNext.fields.nodes)}`);
                 continue;
             }
             const realFieldValue = getFieldValueId(fieldValue, fieldMetadata);
