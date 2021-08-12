@@ -2,6 +2,14 @@ name: Schedule FT
 on:
   repository_dispatch:
     types: schedule
+
+permissions:
+  contents: read
+
+env:
+  issue-number: ${{ github.event.client_payload.command.resource.number }}
+  project-number: 1
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,14 +28,14 @@ jobs:
       - name: add tasks to issue (uses template)
         uses: ./actions/append-to-issue
         with:
-          number: ${{ github.event.client_payload.command.resource.number }}
+          number: ${{ env.issue-number }}
           content-path: '.github/templates/fasttrack-tasks.md'
 
       - name: Add issue to org project
         uses: ./actions/add-issue-to-project
         with:
-          project-number: 1
-          issue-number: ${{ github.event.issue.number }}
+          project-number: ${{ env.project-number }}
+          issue-number: ${{ env.issue-number }}
           token: ${{ secrets.ORG_PAT }}
           # TODO: fix dates from inputs
           set-fields: '[{ "Status": "Approved","Start Date": "2021-01-01" }]'

@@ -4,7 +4,11 @@ on:
     types: approve
 permissions:
   issues: write
+
   contents: read
+
+env:
+  issue-number: ${{ github.event.client_payload.command.resource.number }}
 
 jobs:
   build:
@@ -18,13 +22,13 @@ jobs:
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
           message: Fast Track approved by @${{ github.event.client_payload.command.user.login }}
-          number: ${{ github.event.client_payload.command.resource.number }}
+          number: ${{ env.issue-number }}
 
       # TODO update not to use the fork since feature is already there
       - name: remove triage
         uses: tspascoal/labeler@master
         with:
-          number: ${{ github.event.client_payload.command.resource.number }}
+          number: ${{ env.issue-number }}
           # TODO: test with github_token
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           remove-labels: "Triage"
@@ -34,7 +38,7 @@ jobs:
         uses: ./actions/add-issue-to-project
         with:
           project-number: 1
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ env.issue-number }}
           token: ${{ secrets.ORG_PAT }}
           set-fields: '[{ "Status": "1-Approved" }]'
     
