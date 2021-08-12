@@ -1,6 +1,6 @@
 trigger: schedule
-title: Approve FastTrack
-description: Removes Fastrack from Triage and passes it to the approval stage
+title: Schedule FastTrack
+description: Changes status of FT to schedule and optionally set dates
 
 surfaces:
   - issue
