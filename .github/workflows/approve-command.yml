@@ -9,6 +9,7 @@ permissions:
 
 env:
   issue-number: ${{ github.event.client_payload.command.resource.number }}
+  project-number: 1
 
 jobs:
   build:
@@ -34,10 +35,10 @@ jobs:
           remove-labels: "Triage"
           add-labels: "Approved"
 
-      - name: Add issue to org project
+      - name: Add issue ${{ env.issue-number }} to org project
         uses: ./actions/add-issue-to-project
         with:
-          project-number: 1
+          project-number: ${{ env.project-number }}
           issue-number: ${{ env.issue-number }}
           token: ${{ secrets.ORG_PAT }}
           set-fields: '[{ "Status": "1-Approved" }]'
