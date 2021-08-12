@@ -2,6 +2,9 @@ name: Approved/rejected FT
 on:
   repository_dispatch:
     types: approve
+permissions:
+  issues: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,7 +25,7 @@ jobs:
         with:
           number: ${{ github.event.client_payload.command.resource.number }}
           # TODO: test with github_token
-          GITHUB_TOKEN: ${{ secrets.ORG_PAT }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           remove-labels: "Triage"
           add-labels: "Approved"
 

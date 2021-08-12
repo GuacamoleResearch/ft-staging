@@ -1,7 +1,7 @@
 name: Schedule FT
 on:
   repository_dispatch:
-    types: approve
+    types: schedule
 jobs:
   build:
     runs-on: ubuntu-latest
