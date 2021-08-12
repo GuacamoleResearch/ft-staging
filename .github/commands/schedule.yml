@@ -18,14 +18,14 @@ steps:
           description: Start date (if known)
           format: date
         validations:
-          required: true
+          required: false
       - type: input
         attributes:
           label: Finish Date
           description: End date
           format: date
         validations:
-          required: true
+          required: false
  
     actions:
       submit: Submit
