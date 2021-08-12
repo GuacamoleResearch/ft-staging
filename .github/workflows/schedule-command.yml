@@ -39,7 +39,7 @@ jobs:
           issue-number: ${{ env.issue-number }}
           token: ${{ secrets.ORG_PAT }}
           set-fields: |
-            { "Status": "Approved",
+            { "Status": "2-Scheduled",
               "Start Date": "${{ github.event.client_payload.data['Start Date'] }}",
               "Finish Date": "${{ github.event.client_payload.data['Finish Date'] }}" 
             }
