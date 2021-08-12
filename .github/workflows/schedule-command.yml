@@ -12,7 +12,7 @@ env:
   project-number: 1
 
 jobs:
-  build:
+  schedule:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -23,7 +23,7 @@ jobs:
 
       - uses: marocchino/sticky-pull-request-comment@v2
         with:
-          message: Fast Track Scheduled by @${{ github.event.client_payload.command.user.login }} TODO ADD DATES
+          message: Fast Track Scheduled by @${{ github.event.client_payload.command.user.login }} ${{ github.event.client_payload.data["Start Date"] }}
           number: ${{ github.event.client_payload.command.resource.number }}
 
       - name: add tasks to issue (uses template)
@@ -39,7 +39,7 @@ jobs:
           issue-number: ${{ env.issue-number }}
           token: ${{ secrets.ORG_PAT }}
           # TODO: fix dates from inputs
-          set-fields: '{ "Status": "Approved","Start Date": "2021-01-01" }'
+          set-fields: '{ "Status": "Approved","Start Date": "${{ github.event.client_payload.data["Start Date"] }}","Finish Date": "${{ github.event.client_payload.data["Finish Date"] }}" }'
     
 
 
