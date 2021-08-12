@@ -2,7 +2,7 @@
 
 Automation test repository before code is integrated into [fasttrack repository](https://github.com/github/fasttrack)
 
-> DO NOT STORE ANY RELEAVANT DATA IN HERE
+> DO NOT STORE ANY RELEAVANT DATA IN HERE. THIS ORG IS NOT UNDER GITHUB CONTROL
 
 > All reminders are defined in a template file stored in the repo (markdown)
 
