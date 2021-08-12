@@ -95,6 +95,13 @@ async function setIssueBoardFields(
       fieldName
     )
 
+    if (fieldMetadata === null) {
+      core.warning(`field definiton ${fieldName} not found`)
+
+      core.debug(`fields=${project.organization.projectNext.fields.nodes}`)
+      continue
+    }
+
     const realFieldValue = getFieldValueId(fieldValue, fieldMetadata)
 
     setFieldsGraphQL += `set_${fieldName.replace(

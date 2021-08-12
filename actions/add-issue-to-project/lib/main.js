@@ -86,8 +86,13 @@ function setIssueBoardFields(octokit, project, setFields, issueId) {
         for (const fieldName of Object.keys(setFields)) {
             const fieldValue = setFields[fieldName];
             const fieldMetadata = getFieldByName(project.organization.projectNext.fields.nodes, fieldName);
+            if (fieldMetadata === null) {
+                core.warning(`field definiton ${fieldName} not found`);
+                core.debug(`fields=${project.organization.projectNext.fields.nodes}`);
+                continue;
+            }
             const realFieldValue = getFieldValueId(fieldValue, fieldMetadata);
-            setFieldsGraphQL += `set_${fieldName.replace(" ", "")} : updateProjectNextItemField(input: {
+            setFieldsGraphQL += `set_${fieldName.replace(' ', '')} : updateProjectNextItemField(input: {
       projectId: $projectId itemId: $issueId fieldId: "${fieldMetadata.id}" value: "${realFieldValue}"
       }) { projectNextItem { id } }
     `;
