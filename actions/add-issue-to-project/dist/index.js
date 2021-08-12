@@ -79,7 +79,7 @@ function getFieldValueId(fieldValue, fieldMetadata) {
     if (!settings || !settings.options)
         return fieldValue;
     const options = settings.options;
-    const option = options.find(o => fieldValue.localeCompare(o.name));
+    const option = options.find(o => fieldValue.localeCompare(o.name) === 0);
     if (option == null) {
         throw new Error(`No option found with name ${fieldValue}`);
     }
