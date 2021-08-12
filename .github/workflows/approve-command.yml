@@ -21,7 +21,8 @@ jobs:
         uses: tspascoal/labeler@master
         with:
           number: ${{ github.event.client_payload.command.resource.number }}
-          GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
+          # TODO: test with github_token
+          GITHUB_TOKEN: ${{ secrets.ORG_PAT }}
           remove-labels: "Triage"
           add-labels: "Approved"
 
