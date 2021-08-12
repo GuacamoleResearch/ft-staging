@@ -8,7 +8,7 @@ permissions:
 
 env:
   issue-number: ${{ github.event.client_payload.command.resource.number }}
-  project-number: 1
+  project-number: 4
 
 jobs:
   approve:

@@ -33,4 +33,4 @@ steps:
     
   - type: repository_dispatch
     eventType: schedule
-    repository: ft-staging/FastTrack
+    repository: GuacamoleResearch/ft-staging

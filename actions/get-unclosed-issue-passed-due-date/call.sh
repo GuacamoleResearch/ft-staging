@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+env INPUT_FILTER-LABELS=ePiCXXX INPUT_DUE-DATE-FIELD-NAME="Finish Date" INPUT_DUE-DATE-THRESHOLD=PT23H node dist/index.js
