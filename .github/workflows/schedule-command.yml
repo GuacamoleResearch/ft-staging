@@ -38,8 +38,11 @@ jobs:
           project-number: ${{ env.project-number }}
           issue-number: ${{ env.issue-number }}
           token: ${{ secrets.ORG_PAT }}
-          # TODO: fix dates from inputs
-          set-fields: '{ "Status": "Approved","Start Date": "${{ github.event.client_payload.data['Start Date'] }}","Finish Date": "${{ github.event.client_payload.data['Finish Date'] }}" }'
+          set-fields: |
+            { "Status": "Approved",
+              "Start Date": "${{ github.event.client_payload.data['Start Date'] }}",
+              "Finish Date": "${{ github.event.client_payload.data['Finish Date'] }}" 
+            }
     
 
 
