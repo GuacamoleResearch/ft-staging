@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 env:
   issue-number: ${{ github.event.client_payload.command.resource.number }}

@@ -4,7 +4,6 @@ on:
     types: approve
 permissions:
   issues: write
-
   contents: read
 
 env:
@@ -12,7 +11,7 @@ env:
   project-number: 1
 
 jobs:
-  build:
+  approve:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
