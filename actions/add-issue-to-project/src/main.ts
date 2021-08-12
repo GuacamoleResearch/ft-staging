@@ -95,7 +95,7 @@ async function setIssueBoardFields(
       fieldName
     )
 
-    if (fieldMetadata === null) {
+    if (fieldMetadata == null) {
       core.warning(`field definiton ${fieldName} not found`)
 
       core.debug(`fields=${project.organization.projectNext.fields.nodes}`)

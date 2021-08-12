@@ -73,7 +73,7 @@ function getFieldValueId(fieldValue, fieldMetadata) {
         return fieldValue;
     const options = settings.options;
     const option = options.find(o => fieldValue.localeCompare(o.name) === 0);
-    if (option == null) {
+    if (!option) {
         throw new Error(`No option found with name ${fieldValue}`);
     }
     return option.id;
@@ -86,7 +86,7 @@ function setIssueBoardFields(octokit, project, setFields, issueId) {
             const fieldValue = setFields[fieldName];
             core.debug(`setting field ${fieldName}`);
             const fieldMetadata = getFieldByName(project.organization.projectNext.fields.nodes, fieldName);
-            if (fieldMetadata === null) {
+            if (fieldMetadata == null) {
                 core.warning(`field definiton ${fieldName} not found`);
                 core.debug(`fields=${project.organization.projectNext.fields.nodes}`);
                 continue;
