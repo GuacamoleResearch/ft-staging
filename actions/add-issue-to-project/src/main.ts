@@ -70,7 +70,9 @@ function getFieldValueId(fieldValue: string, fieldMetadata: any): string {
   const option = options.find(o => fieldValue.localeCompare(o.name) === 0)
 
   if (!option) {
-    throw new Error(`No option found with name ${fieldValue}`)
+    throw new Error(
+      `No option found with name ${fieldValue} for field ${fieldMetadata.name}`
+    )
   }
 
   return option.id
@@ -95,10 +97,14 @@ async function setIssueBoardFields(
       fieldName
     )
 
-    if (fieldMetadata == null) {
-      core.warning(`field definiton ${fieldName} not found`)
+    if (!fieldMetadata) {
+      core.warning(`field definition ${fieldName} not found`)
 
-      core.debug(`fields=${project.organization.projectNext.fields.nodes}`)
+      core.debug(
+        `fields=${JSON.stringify(
+          project.organization.projectNext.fields.nodes
+        )}`
+      )
       continue
     }
 
