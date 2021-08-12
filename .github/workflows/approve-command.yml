@@ -41,7 +41,7 @@ jobs:
           project-number: ${{ env.project-number }}
           issue-number: ${{ env.issue-number }}
           token: ${{ secrets.ORG_PAT }}
-          set-fields: '[{ "Status": "1-Approved" }]'
+          set-fields: '{ "Status": "1-Approved" }'
     
 
 

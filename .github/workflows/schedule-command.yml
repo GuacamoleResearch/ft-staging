@@ -38,7 +38,7 @@ jobs:
           issue-number: ${{ env.issue-number }}
           token: ${{ secrets.ORG_PAT }}
           # TODO: fix dates from inputs
-          set-fields: '[{ "Status": "Approved","Start Date": "2021-01-01" }]'
+          set-fields: '{ "Status": "Approved","Start Date": "2021-01-01" }'
     
 
 
