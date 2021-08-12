@@ -1,0 +1,37 @@
+name: Approved/rejected FT
+on:
+  repository_dispatch:
+    types: approve
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Output command context
+        env:
+          COMMAND_CONTEXT: ${{ toJSON(github.event.client_payload) }}
+        run: echo "$COMMAND_CONTEXT"
+      - uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: Fast Track approved by @${{ github.event.client_payload.command.user.login }}
+          number: ${{ github.event.client_payload.command.resource.number }}
+
+      # TODO update not to use the fork since feature is already there
+      - name: remove triage
+        uses: tspascoal/labeler@master
+        with:
+          number: ${{ github.event.client_payload.command.resource.number }}
+          GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
+          remove-labels: "Triage"
+          add-labels: "Approved"
+
+      - name: Add issue to org project
+        uses: ./actions/add-issue-to-project
+        with:
+          project-number: 1
+          issue-number: ${{ github.event.issue.number }}
+          token: ${{ secrets.ORG_PAT }}
+          set-fields: '[{ "Status": "1-Approved" }]'
+    
+
+

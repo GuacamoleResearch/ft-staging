@@ -30,4 +30,4 @@ steps:
     
   - type: repository_dispatch
     eventType: approve
-    repository: github/fasttrack-staging
+    repository: ft-staging/FastTrack

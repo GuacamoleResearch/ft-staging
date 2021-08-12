@@ -1,11 +1,13 @@
-name: Create Readme
+name: Create Readme and set status to confirmed
 on: 
   issues:
     types:
       - labeled
 
+# TODO: add repository dispatch for action with type Confirmed
+
 env:
-  ProjectId: 2
+  ProjectId: 1
   IssueColumName: Approved
   GH_USERNAME: ${{ github.event.schedule.user.login }}   
   
@@ -61,8 +63,12 @@ jobs:
       run: |
         git commit -m "Add $customer Readme from template #${{ github.event.issue.number }}"
         git push --set-upstream origin "$CreateReadmeBranch"
+
+    - name: Add issue 
+      uses: ./actions
    
     - name: Add Issue to (repo) Project
+      if: 'false'
       uses: srggrs/assign-one-project-github-action@1.2.0
       with:
         project: 'https://github.com/${{ github.repository }}/projects/${{ env.ProjectId }}'

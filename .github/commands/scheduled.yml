@@ -1,0 +1,36 @@
+trigger: schedule
+title: Approve FastTrack
+description: Removes Fastrack from Triage and passes it to the approval stage
+
+surfaces:
+  - issue
+  
+steps:
+  - type: fill
+    template: "The FastTrack has been approved"
+
+  - type: form
+    style: modal
+    body:
+      - type: input
+        attributes:
+          label: Start Date
+          description: Start date (if known)
+          format: date
+        validations:
+          required: true
+      - type: input
+        attributes:
+          label: Finish Date
+          description: End date
+          format: date
+        validations:
+          required: true
+ 
+    actions:
+      submit: Submit
+      cancel: Cancel
+    
+  - type: repository_dispatch
+    eventType: schedule
+    repository: ft-staging/FastTrack
