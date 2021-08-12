@@ -4,6 +4,7 @@ on:
     types: approve
 permissions:
   issues: write
+  contents: read
 
 jobs:
   build:
