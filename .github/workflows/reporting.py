@@ -6,82 +6,50 @@ import re
 import io
 #region Variable initialization
 issue_query = """
-  {
-    repository(name: "ft-staging", owner: "GuacamoleResearch") {
-      issues(first: 100, states: OPEN) {
-        edges {
-          node {
-            state
-            title
-            labels(first: 10) {
-              edges {
-                node {
-                  name
-                }
-              }
-            }
-          }
-        }
-      }
-    },
+{
+  organization(login: "GuacamoleResearch") {
     projectNext(number: 4) {
-    columns(first: 10) {
-      nodes {
-        cards(first: 100) {
-          nodes {
-            content {
-              ... on Issue {
-                number
-                title
-              }
-            }
+      items(first: 100) {
+        nodes {
+          title
+          id
+          content {
+            __typename
           }
-        }
-        name
-        id
-        }
-      }
-    }
-  }
-"""
-
-issue_query = """
-  {
-    repository(name: "ft-staging", owner: "GuacamoleResearch") {
-      issues(first: 100, states: OPEN) {
-        edges {
-          node {
-            state
-            title
-            labels(first: 10) {
-              edges {
-                node {
-                  name
-                }
+          updatedAt
+          fieldValues(first: 30) {
+            nodes {
+              projectField {
+                name
               }
-            }
-          }
-        }
-      }
-    },
-    organization(login: "GuacamoleResearch") {
-      projectNext(number: 4) {
-        items(first: 100) {
-          nodes {
-            title,
-            fieldValues(first: 20) {
-              nodes{
-                value
-                projectField{
-                  name
-                }
-              }
+              value
             }
           }
         }
       }
     }
+    repository(name: "ft-staging") {
+      issues(states: OPEN, first: 100) {
+        nodes {
+          id
+          title
+          assignees(first: 100) {
+            nodes {
+              login
+            }
+          }
+          labels(first: 100) {
+            nodes { name }
+          }
+          author {
+            login
+          }
+          body
+        }
+      }
+    }
   }
+}
 """
 
 label_count = {
@@ -100,20 +68,23 @@ response = requests.post(
     json={'query':issue_query},
     headers={'Authorization':'bearer '+token, 'GraphQL-Features':'projects_next_graphql' }
 )
+
 summary_block=""
 if response:
     issues_json = response.json()
-    for node in issues_json['data']['repository']['issues']['edges']:
-        labels_text = str(node['node']['labels']['edges'])
+    for node in issues_json['data']['organization']['repository']['issues']['nodes']:
+        labels_text = str(list(map(lambda x:x['name'], node['labels']['nodes'])))
         for region in label_count.keys():
             for engage_state in label_count[region].keys():
                 if labels_text.find(region) > 0 and labels_text.find(engage_state) > 0:
                     label_count[region][engage_state] += 1
+
     issue_summary = """
 ## Regional Status Summary
 | Region | Triage    | Confirmed | Total |
 | ------ | --------- | --------- | ----- |
 """
+
     for region in label_count.keys():
         summary = "| " + region + "   | "
         total = 0
@@ -123,6 +94,7 @@ if response:
         issue_summary += summary + str(total) + "   |\n"
 else:
     issue_summary = response.content
+
 #
 # Project board summary for Confirmed/Scheduled/In Progress/Done
 # Counts for each state
@@ -130,8 +102,10 @@ else:
 status_summary = """
 ## Engagement Status Summary
 """
-for node in issues_json['data']['repository']['project']['columns']['nodes']:
+
+for node in issues_json['data']['organization']['projectNext']['columns']['nodes']:
     status_summary += "- " + node['name'] + ": " + str(len(node['cards']['nodes'])) + "\n"
+
 #
 # Project board details for recent and upcoming deliveries
 #
@@ -177,10 +151,16 @@ recent_updates = """
 #
 # Output results
 #
-summary = open("StatusSummary-staging.md","w")
-summary.write("# FastTrack Engagement Summary\n")
-summary.write("*Last updated: " + datetime.datetime.now().strftime("%I:%M%p UTC on %B %d, %Y") + "*\n")
-summary.write(issue_summary)
-summary.write(status_summary)
-summary.write(recent_updates)
-summary.close()
+# summary = open("StatusSummary-staging.md","w")
+# summary.write("# FastTrack Engagement Summary\n")
+# summary.write("*Last updated: " + datetime.datetime.now().strftime("%I:%M%p UTC on %B %d, %Y") + "*\n")
+# summary.write(issue_summary)
+# summary.write(status_summary)
+# summary.write(recent_updates)
+# summary.close()
+
+print(issue_summary)
+
+print(status_summary)
+
+print(recent_updates)
