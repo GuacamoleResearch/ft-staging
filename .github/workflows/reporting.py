@@ -22,10 +22,6 @@ def GetProjectData(org, project, repo):
         items(first: 100) {
           nodes {
             title
-            id
-            content {
-              __typename
-            }
             updatedAt
             fieldValues(first: 30) {
               nodes {
@@ -41,7 +37,7 @@ def GetProjectData(org, project, repo):
       repository(name: "{2}") {
         issues(states: OPEN, first: 100) {
           nodes {
-            id
+            number
             title
             assignees(first: 100) {
               nodes {
@@ -61,7 +57,7 @@ def GetProjectData(org, project, repo):
     }
   }"""
   
-  # Standard Python Format doesn't seem to work with multi-line, so using 'sub'
+  # Standard Python Format doesn't seem to work with multi-line, so using 'replace'
   issue_query = issue_query.replace("{0}", org).replace("{1}", str(project)).replace("{2}", repo)
 
   token = os.environ["FASTRACK_PROJECT_SECRET"]
@@ -83,6 +79,7 @@ def MergeIssueData(project_issue_results):
   # First, capture all issues from the query
   for node in project_issue_results['data']['organization']['repository']['issues']['nodes']:
     issue = {}
+    issue['Number']     = node['number']
     issue['Title']      = node['title']
     issue['Labels']     = str(list(map(lambda x:x['name'], node['labels']['nodes'])))
     issue['Author']     = node['author']['login']
