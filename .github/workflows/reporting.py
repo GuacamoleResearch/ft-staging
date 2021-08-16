@@ -1,3 +1,4 @@
+from sqlite3 import Date
 import requests
 import json
 import os
@@ -8,6 +9,7 @@ import re
 ORGANIZATION  = os.environ.get('ORG')  or "GuacamoleResearch"
 PROJECT_NUM   = os.environ.get('PROJ') or 4
 REPOSITORY    = os.environ.get('REPO') or "ft-staging"
+DISCUSSION_ID = os.environ.get('DISC_ID') or "MDEwOkRpc2N1c3Npb24zNTIzOTQy"
 STATUS_MAP    = None
 #endregion
 
@@ -151,12 +153,13 @@ def GetIssueSummary(issues, target_labels):
   rows = {'TBD':{}}
   for label in target_labels: rows[label] = {}
 
+  # TODO: The appears to be a bug in capturing the TBD counts - currently all '0'
   # Generate a per-label, per-status count
   for issue in issues:
     labels = issue['Labels']
     found_row = False
     for row in rows:
-      if not rows[row].get(issue['Status']):
+      if not rows[row].get(issue['Status']): 
         rows[row][issue['Status']] = 0
       if str(labels).find(row) >= 0:
         rows[row][issue['Status']] += 1
@@ -213,26 +216,6 @@ def FormatUrl(org, repo, issue_id):
     return 'https://github.com/{0}/{1}/issues/{2}'.format(org, repo, issue_id)
 
 #
-# ColunmnDetails - Project board details for recent and upcoming deliveries
-def ColumnDetails(column_json, column_name, upcoming=False, ending=False):
-  issue_detail = ""
-  for column in column_json:
-    if column['name'] == column_name:
-      for card in column['cards']['nodes']:
-        title = card["content"]["title"]
-        issue_num = card["content"]["number"]
-        # TODO: Pass in ORG & REPOSITORY
-        this_issue = '  - [' + title + ']('+ FormatUrl(ORGANIZATION, REPOSITORY, issue_num) + ')\n'
-        date_range = DatesFromIssueTitle(title)
-        if upcoming and date_range['start'] > datetime.date.today() and date_range['start'] < (datetime.date.today()+datetime.timedelta(days=7)):
-          issue_detail += this_issue
-        elif ending and date_range['finish'] > datetime.date.today() and date_range['finish'] < datetime.date.today()+datetime.timedelta(days=7):
-          issue_detail += this_issue
-        elif (not upcoming) and (not ending):
-          issue_detail += this_issue
-  return issue_detail
-
-#
 # CountChecklist - Parse the issue description to count "[ ]" and "[x]" per 
 def CountChecklist(issue_description):
   # Pre-engagement Regex - "### Pre((.|\n)*)### Del"
@@ -260,6 +243,30 @@ def CountChecklistForRegion(regex, issue_description):
   results = { 'checked': checked.count('- [x]') + checked.count('- [X]'), 'unchecked': unchecked.count('- [ ]')}
   return results
 
+#
+# UpdateDiscussion - Update the title and description of a specificed Discussion
+def UpdateDiscussion(discussionId, title, body):
+  mutation = """
+  mutation {
+    updateDiscussion(input: {discussionId: "{discussionId}", body: "{body}", title: "{title}"}) {
+      discussion {
+        id
+      }
+    }
+  }"""
+  mutation = mutation.replace("{discussionId}", discussionId).replace("{body}", body).replace("{title}", title)
+
+  token = os.environ["FASTRACK_PROJECT_SECRET"]
+  response = requests.post(
+      'https://api.github.com/graphql',
+      json={'query':mutation},
+      headers={'Authorization':'bearer '+token, 'GraphQL-Features':'projects_next_graphql' }
+    )
+  if response:
+    return response.json()
+  else:
+    return
+
 #endregion
 
 #----------------------------------------------------------------------------
@@ -276,7 +283,12 @@ issue_details_md = GetIssueDetails(issues)
 region_summary_md = GetIssueSummary(issues, ['AMER','APAC','EMEA'])
 travel_smmary_md = GetIssueSummary(issues, [':house:',':airplane:'])
 
-# Emit report
-print(region_summary_md)
-print(travel_smmary_md)
-print(issue_details_md)
+# Write the report to the reporting discussion description and title
+body = '## Regional Summary\n\n' + region_summary_md + '\n\n## Travel Summary\n\n' + travel_smmary_md + '\n\n## Request Details\n\n' + issue_details_md
+title = 'FastTrack Summary Report - ' + str(Date.today())
+UpdateDiscussion(DISCUSSION_ID, title, body)
+
+# # Emit report
+# print(region_summary_md)
+# print(travel_smmary_md)
+# print(issue_details_md)
