@@ -10,6 +10,7 @@ import io
 ORGANIZATION  = "GuacamoleResearch"
 PROJECT_NUM   = 4
 REPOSITORY    = "ft-staging"
+STATUS_MAP    = Null
 #endregion
 
 #region FUNCTIONS: Build master isse list
@@ -32,6 +33,12 @@ def GetProjectData(org, project, repo):
                 value
               }
             }
+          }
+        }
+        fields(first: 50) {
+          nodes {
+            name
+            settings
           }
         }
       }
@@ -74,7 +81,7 @@ def GetProjectData(org, project, repo):
 
 #
 # MergeIssueData - Merges thhe project and issue data in a unified issue list:
-def MergeIssueData(project_issue_resuzlts):
+def MergeIssueData(project_issue_results):
   issue_list = []
 
   # Capture all issues from the query
@@ -104,7 +111,7 @@ def MergeIssueData(project_issue_resuzlts):
         for field in node['fieldValues']['nodes']:
           fieldName = field['projectField']['name']
           issue[fieldName] = field['value']
-        issue['Status'] = MapStatusField(issue)
+        issue['Status'] = MapStatusField(project_issue_results, issue)
 
   return issue_list
 
@@ -125,10 +132,15 @@ def DatesFromIssueTitle(title):
 
 #
 # MapStatusField - Converts status IDs into status text
-def MapStatusField(issue):
-  # TODO: Currently hardcoded - need to update query and dynamiclly build map
-  status_map = {'f75ad846':'Approved','47fc9ee4':'Scheduled','98236657':'Delivering','261852b6':'Done'}
-  status_text = status_map[issue['Status']] if issue.get('Status') else ''
+def MapStatusField(query_results, issue):
+  global STATUS_MAP
+  if (STATUS_MAP == Null):
+    fields = query_results['data']['organization']['projectNext']['fields']['nodes']
+    status = list(filter(lambda x:(x['name'] == 'Status'), fields))
+    status_settings = json.loads(status[0]['settings'])
+    STATUS_MAP = status_settings['options']
+
+  status_text = list(filter(lambda x:(x['id']==issue['Status']), STATUS_MAP))[0]['name'] if issue.get('Status') else ''
   return status_text
 
 #endregion
