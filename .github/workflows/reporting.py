@@ -1,16 +1,14 @@
-from xxlimited import Null
 import requests
 import json
 import os
 import datetime
 import re
-import io
 
 #region Configuration Variables
-ORGANIZATION  = "GuacamoleResearch"
-PROJECT_NUM   = 4
-REPOSITORY    = "ft-staging"
-STATUS_MAP    = Null
+ORGANIZATION  = os.environ.get('ORG')  or "GuacamoleResearch"
+PROJECT_NUM   = os.environ.get('PROJ') or 4
+REPOSITORY    = os.environ.get('REPO') or "ft-staging"
+STATUS_MAP    = None
 #endregion
 
 #region FUNCTIONS: Build master isse list
@@ -128,13 +126,13 @@ def DatesFromIssueTitle(title):
       date_range.append(the_date)
     return {"start": date_range[0], "finish": date_range[1]}
   except:
-    return {"start": Null, "finish": Null}
+    return {"start": None, "finish": None}
 
 #
 # MapStatusField - Converts status IDs into status text
 def MapStatusField(query_results, issue):
   global STATUS_MAP
-  if (STATUS_MAP == Null):
+  if (STATUS_MAP == None):
     fields = query_results['data']['organization']['projectNext']['fields']['nodes']
     status = list(filter(lambda x:(x['name'] == 'Status'), fields))
     status_settings = json.loads(status[0]['settings'])
@@ -148,7 +146,7 @@ def MapStatusField(query_results, issue):
 #region FUNCTIONS: Process Issue data
 
 #
-# GetIssueCounds - Returns markdown summary of issues by state by region
+# GetIssueCounts - Returns markdown summary of issues by state by region
 def GetIssueCounts(issues):
   # TODO: Evolve this into dynamic status columns and add a section for travel/remote/unknown
   # Initialize variables
@@ -182,7 +180,48 @@ def GetIssueCounts(issues):
   return issue_summary
 
 #
-# GetIssueDetails - Build out summary list for issues by state with hyperlinks to issues
+# GetIssueSummary - Build summary issue count by status (columns) and region or remote (rows)
+def GetIssueSummary(issues):
+  regions = {'AMER':{}, 'APAC':{}, 'EMEA':{}, 'TBD':{}}
+  #delivery = {':house:':0, ':airplane:':0, 'TBD':0}
+
+  # Generate a per-label, per-status count
+  for issue in issues:
+    labels = issue['Labels']
+    found_region = False
+    for region in regions:
+      if not regions[region].get(issue['Status']):
+        regions[region][issue['Status']] = 0
+      if str(labels).find(region) >= 0:
+        regions[region][issue['Status']] += 1
+        found_region = True
+    if not found_region: 
+      if not regions[region].get('TBD'):
+        regions[region]['TBD'] = 1
+      else:
+        regions[region]['TBD'] += 1
+
+  # Convert the data structure to MD
+  # Start with the header
+  md = '| '
+  for status in regions['TBD'].keys():
+    md += '| ' + status
+  md += ' |\n|-|-|-|-|-|-|\n'
+  
+  # Add the body of the table
+  for region in regions:
+    md += '| ' + region
+    for status in regions[region]:
+      md += '| ' + str(regions[region][status])
+    md += ' |\n'
+
+  return md
+
+  # return issue_details
+
+
+#
+# GetIssueDetails - Build list of issues by state with hyperlinks
 def GetIssueDetails(issues):
   global STATUS_MAP, ORGANIZATION, REPOSITORY
   status_list = {}
@@ -204,7 +243,6 @@ def GetIssueDetails(issues):
 #endregion
 
 #region FUNCTIONS: Utilities
-
 #
 # FormatUrl - Returns markdown for a link with the title for a given issue
 def FormatUrl(org, repo, issue_id):
@@ -260,53 +298,21 @@ def CountChecklistForRegion(regex, issue_description):
 
 #endregion
 
-
+#----------------------------------------------------------------------------
 #
 # Begin Main
 #
 
 # Read issues and summarize issue counts
-
 issue_data = GetProjectData( ORGANIZATION, PROJECT_NUM, REPOSITORY)
 issues = MergeIssueData(issue_data)
 
-# Report issue status
-
+# Build Status report
 issue_summary_md = GetIssueCounts(issues) 
-print(issue_summary_md)
-
 issue_details_md = GetIssueDetails(issues)
+
+GetIssueSummary(issues)
+
+# Emit report
+print(issue_summary_md)
 print(issue_details_md)
-
-
-# #
-# # Checklist stuff for now...
-# for issue in issues:
-#   results = CountChecklist(issue['Body'])
-#   print(issue['Title'], results)
-
-
-
-
-#---------------------------------------------------------------------------------------------
-
-#
-# Project board summary for Confirmed/Scheduled/In Progress/Done
-# Counts for each state
-#
-# status_summary = """
-# ## Engagement Status Summary
-# """
-
-# for node in issues_json['data']['organization']['projectNext']['columns']['nodes']:
-#     status_summary += "- " + node['name'] + ": " + str(len(node['cards']['nodes'])) + "\n"
-
-# column_json = issues_json['data']['repository']['project']['columns']['nodes']
-# recent_updates = """
-# ## Recent and Upcoming FastTrack Deliveries
-# - Currently delivering:
-# """ + ColumnDetails(column_json, "Delivering") + """
-# - Finishing this week:
-# """ + ColumnDetails(column_json, "Delivering", ending=True) + """
-# - Starting next week:
-# """ + ColumnDetails(column_json, "Scheduled", upcoming=True) + "\n"
