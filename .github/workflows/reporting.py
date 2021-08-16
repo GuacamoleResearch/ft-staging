@@ -144,80 +144,44 @@ def MapStatusField(query_results, issue):
 #endregion
 
 #region FUNCTIONS: Process Issue data
-
-#
-# GetIssueCounts - Returns markdown summary of issues by state by region
-def GetIssueCounts(issues):
-  # TODO: Evolve this into dynamic status columns and add a section for travel/remote/unknown
-  # Initialize variables
-  issue_summary = """
-## Regional Status Summary
-| Region | Triage    | Confirmed | Total |
-| ------ | --------- | --------- | ----- |
-"""
-  label_count = {
-    "AMER": { "Triage": 0, "Confirmed": 0 },
-    "EMEA": { "Triage": 0, "Confirmed": 0 },
-    "APAC": { "Triage": 0, "Confirmed": 0 }}
-
-  # count issues by region and state
-  for issue in issues:
-    for region in label_count.keys():
-      if issue["Labels"].find(region):            
-        for engage_state in label_count[region].keys():
-          if issue["Labels"].find(region) > 0 and issue["Labels"].find(engage_state) > 0:
-            label_count[region][engage_state] += 1
-  
-  # Build markdown for summary data
-  for region in label_count.keys():
-    summary = "| " + region + "   | "
-    total = 0
-    for engage_state in label_count[region].keys():
-      summary += str(label_count[region][engage_state]) + "        | "
-      total += label_count[region][engage_state]
-    issue_summary += summary + str(total) + "   |\n"
-
-  return issue_summary
-
 #
 # GetIssueSummary - Build summary issue count by status (columns) and region or remote (rows)
-def GetIssueSummary(issues):
-  regions = {'AMER':{}, 'APAC':{}, 'EMEA':{}, 'TBD':{}}
-  #delivery = {':house:':0, ':airplane:':0, 'TBD':0}
+def GetIssueSummary(issues, target_labels):
+  # Initialize data structure based on target labels
+  rows = {'TBD':{}}
+  for label in target_labels: rows[label] = {}
 
   # Generate a per-label, per-status count
   for issue in issues:
     labels = issue['Labels']
-    found_region = False
-    for region in regions:
-      if not regions[region].get(issue['Status']):
-        regions[region][issue['Status']] = 0
-      if str(labels).find(region) >= 0:
-        regions[region][issue['Status']] += 1
-        found_region = True
-    if not found_region: 
-      if not regions[region].get('TBD'):
-        regions[region]['TBD'] = 1
+    found_row = False
+    for row in rows:
+      if not rows[row].get(issue['Status']):
+        rows[row][issue['Status']] = 0
+      if str(labels).find(row) >= 0:
+        rows[row][issue['Status']] += 1
+        found_row = True
+    if not found_row: 
+      if not rows[row].get('TBD'):
+        rows[row]['TBD'] = 1
       else:
-        regions[region]['TBD'] += 1
+        rows[row]['TBD'] += 1
 
   # Convert the data structure to MD
   # Start with the header
   md = '| '
-  for status in regions['TBD'].keys():
+  for status in rows['TBD'].keys():
     md += '| ' + status
   md += ' |\n|-|-|-|-|-|-|\n'
   
   # Add the body of the table
-  for region in regions:
-    md += '| ' + region
-    for status in regions[region]:
-      md += '| ' + str(regions[region][status])
+  for row in rows:
+    md += '| ' + row
+    for status in rows[row]:
+      md += '| ' + str(rows[row][status])
     md += ' |\n'
 
   return md
-
-  # return issue_details
 
 
 #
@@ -308,11 +272,11 @@ issue_data = GetProjectData( ORGANIZATION, PROJECT_NUM, REPOSITORY)
 issues = MergeIssueData(issue_data)
 
 # Build Status report
-issue_summary_md = GetIssueCounts(issues) 
 issue_details_md = GetIssueDetails(issues)
-
-GetIssueSummary(issues)
+region_summary_md = GetIssueSummary(issues, ['AMER','APAC','EMEA'])
+travel_smmary_md = GetIssueSummary(issues, [':house:',':airplane:'])
 
 # Emit report
-print(issue_summary_md)
+print(region_summary_md)
+print(travel_smmary_md)
 print(issue_details_md)
