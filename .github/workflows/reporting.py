@@ -150,6 +150,7 @@ def MapStatusField(query_results, issue):
 #
 # GetIssueCounds - Returns markdown summary of issues by state by region
 def GetIssueCounts(issues):
+  # TODO: Evolve this into dynamic status columns and add a section for travel/remote/unknown
   # Initialize variables
   issue_summary = """
 ## Regional Status Summary
@@ -180,9 +181,25 @@ def GetIssueCounts(issues):
 
   return issue_summary
 
-
+#
+# GetIssueDetails - Build out summary list for issues by state with hyperlinks to issues
 def GetIssueDetails(issues):
-  return "TO DO: GetIssueDetails"
+  global STATUS_MAP, ORGANIZATION, REPOSITORY
+  status_list = {}
+  issue_details = ''
+  for status in STATUS_MAP:
+    for issue in issues:
+      issue_link = FormatUrl(ORGANIZATION, REPOSITORY, issue['Number'])
+      if not status_list.get(status['name']):
+        status_list[status['name']] = []
+      if status['name'] == issue['Status']:
+        status_list[status['name']].append("- [" + issue['Title'] + "](" + issue_link + ")\n")
+
+    issue_details += '\n' + status['name'] + '\n'
+    for issue_text in status_list[status['name']]:
+      issue_details += issue_text
+
+  return issue_details
 
 #endregion
 
