@@ -1,3 +1,4 @@
+from xxlimited import Null
 import requests
 import json
 import os
@@ -11,7 +12,7 @@ PROJECT_NUM   = 4
 REPOSITORY    = "ft-staging"
 #endregion
 
-#region Functions
+#region FUNCTIONS: Build master isse list
 #
 # GetProjectData - Returns query results for FastTrack Issues + Memex
 def GetProjectData(org, project, repo):
@@ -73,18 +74,24 @@ def GetProjectData(org, project, repo):
 
 #
 # MergeIssueData - Merges thhe project and issue data in a unified issue list:
-def MergeIssueData(project_issue_results):
+def MergeIssueData(project_issue_resuzlts):
   issue_list = []
 
-  # First, capture all issues from the query
+  # Capture all issues from the query
   for node in project_issue_results['data']['organization']['repository']['issues']['nodes']:
     issue = {}
     issue['Number']     = node['number']
     issue['Title']      = node['title']
-    issue['Labels']     = str(list(map(lambda x:x['name'], node['labels']['nodes'])))
+    issue['Labels']     = str(list(map(lambda x:x['name'], node['labels']['nodes']))) if node.get('labels') else []
     issue['Author']     = node['author']['login']
     issue['Body']       = node.get('body')
-    issue['Assignees']  = node.get('missing', 'none')
+    issue['Assignees']  = str(list(map(lambda x:x['login'], node['assignees']['nodes']))) if node.get('assignees') else []
+
+    # Add dates from title if they're available
+    dates = DatesFromIssueTitle(issue['Title'])
+    issue['Start_Date'] = dates['start']
+    issue['End_Date']   = dates['finish']
+
     issue_list.append(issue)
 
   # Next, Copy in all fields from the projectNext data
@@ -97,23 +104,77 @@ def MergeIssueData(project_issue_results):
         for field in node['fieldValues']['nodes']:
           fieldName = field['projectField']['name']
           issue[fieldName] = field['value']
+        issue['Status'] = MapStatusField(issue)
 
   return issue_list
 
 #
 # DatesFromIssueTitle: Parses start and end dates
 def DatesFromIssueTitle(title):
+  try:
     date_range_strings = title.rsplit("(")[1].split(")")[0].split("-")
     date_range = []
     for date_string in date_range_strings:
-        parts = date_string.split("/")
-        try:
-            if len(parts) == 2: parts.append(str(datetime.date.today().year))
-            the_date = datetime.date(int(parts[2]), int(parts[0]), int(parts[1]))
-            date_range.append(the_date)
-        except:
-            return "Invalid date string"
+      parts = date_string.split("/")
+      if len(parts) == 2: parts.append(str(datetime.date.today().year))
+      the_date = datetime.date(int(parts[2]), int(parts[0]), int(parts[1]))
+      date_range.append(the_date)
     return {"start": date_range[0], "finish": date_range[1]}
+  except:
+    return {"start": Null, "finish": Null}
+
+#
+# MapStatusField - Converts status IDs into status text
+def MapStatusField(issue):
+  # TODO: Currently hardcoded - need to update query and dynamiclly build map
+  status_map = {'f75ad846':'Approved','47fc9ee4':'Scheduled','98236657':'Delivering','261852b6':'Done'}
+  status_text = status_map[issue['Status']] if issue.get('Status') else ''
+  return status_text
+
+#endregion
+
+#region FUNCTIONS: Process Issue data
+
+#
+# GetIssueCounds - Returns markdown summary of issues by state by region
+def GetIssueCounts(issues):
+  # Initialize variables
+  issue_summary = """
+## Regional Status Summary
+| Region | Triage    | Confirmed | Total |
+| ------ | --------- | --------- | ----- |
+"""
+  label_count = {
+    "AMER": { "Triage": 0, "Confirmed": 0 },
+    "EMEA": { "Triage": 0, "Confirmed": 0 },
+    "APAC": { "Triage": 0, "Confirmed": 0 }}
+
+  # count issues by region and state
+  for issue in issues:
+    for region in label_count.keys():
+      if issue["Labels"].find(region):            
+        for engage_state in label_count[region].keys():
+          if issue["Labels"].find(region) > 0 and issue["Labels"].find(engage_state) > 0:
+            label_count[region][engage_state] += 1
+  
+  # Build markdown for summary data
+  for region in label_count.keys():
+    summary = "| " + region + "   | "
+    total = 0
+    for engage_state in label_count[region].keys():
+      summary += str(label_count[region][engage_state]) + "        | "
+      total += label_count[region][engage_state]
+    issue_summary += summary + str(total) + "   |\n"
+
+  return issue_summary
+
+
+def GetIssueDetails(issues):
+  return "TO DO: GetIssueDetails"
+
+#endregion
+
+#region FUNCTIONS: Utilities
 
 #
 # FormatUrl - Returns markdown for a link with the title for a given issue
@@ -175,46 +236,25 @@ def CountChecklistForRegion(regex, issue_description):
 # Begin Main
 #
 
-label_count = {
-  "AMER": { "Triage": 0, "Confirmed": 0 },
-  "EMEA": { "Triage": 0, "Confirmed": 0 },
-  "APAC": { "Triage": 0, "Confirmed": 0 }}
-
-#
 # Read issues and summarize issue counts
-#
 
-summary_block=""
 issue_data = GetProjectData( ORGANIZATION, PROJECT_NUM, REPOSITORY)
-
 issues = MergeIssueData(issue_data)
 
-for issue in issues:
-  for region in label_count.keys():
-    if issue["Labels"].find(region):            
-      for engage_state in label_count[region].keys():
-        if issue["Labels"].find(region) > 0 and issue["Labels"].find(engage_state) > 0:
-          label_count[region][engage_state] += 1
-    
-issue_summary = """
-## Regional Status Summary
-| Region | Triage    | Confirmed | Total |
-| ------ | --------- | --------- | ----- |
-"""
+# Report issue status
 
-for region in label_count.keys():
-  summary = "| " + region + "   | "
-  total = 0
-  for engage_state in label_count[region].keys():
-    summary += str(label_count[region][engage_state]) + "        | "
-    total += label_count[region][engage_state]
-  issue_summary += summary + str(total) + "   |\n"
+issue_summary_md = GetIssueCounts(issues) 
+print(issue_summary_md)
 
-#
-# Checklist stuff for now...
-for issue in issues:
-  results = CountChecklist(issue['Body'])
-  print(issue['Title'], results)
+issue_details_md = GetIssueDetails(issues)
+print(issue_details_md)
+
+
+# #
+# # Checklist stuff for now...
+# for issue in issues:
+#   results = CountChecklist(issue['Body'])
+#   print(issue['Title'], results)
 
 
 
@@ -241,21 +281,3 @@ for issue in issues:
 # """ + ColumnDetails(column_json, "Delivering", ending=True) + """
 # - Starting next week:
 # """ + ColumnDetails(column_json, "Scheduled", upcoming=True) + "\n"
-
-
-#
-# Output results
-#
-# summary = open("StatusSummary-staging.md","w")
-# summary.write("# FastTrack Engagement Summary\n")
-# summary.write("*Last updated: " + datetime.datetime.now().strftime("%I:%M%p UTC on %B %d, %Y") + "*\n")
-# summary.write(issue_summary)
-# summary.write(status_summary)
-# summary.write(recent_updates)
-# summary.close()
-
-print(issue_summary)
-
-# print(status_summary)
-
-# print(recent_updates)
