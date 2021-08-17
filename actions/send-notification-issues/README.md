@@ -30,7 +30,7 @@ $ npm test
 ## Usage
 
 ```YAML
-uses: ./actions/send-unclosed-issue-notification
+uses: ./actions/send-notification-issues
 with:
   issues-list: # The list of issues (comma separated). Each issue can be in format owner/repo/number or just number (in the case the issue is considered to be in the current repository).)
   # token: # Token (Defaults to github.token). Will need to use a PAT if issues are in other repos.
