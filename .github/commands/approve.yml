@@ -14,7 +14,7 @@ steps:
       - type: input
         attributes:
           label: Architects
-          description: Architects assigned to this engagement (optional)
+          description: Architects assigned to this engagement (optional). Comma separated
           format: text
         validations:
           required: false

@@ -24,11 +24,10 @@ jobs:
           message: Fast Track approved by @${{ github.event.client_payload.command.user.login }}
           number: ${{ env.issue-number }}
 
-      # TODO update not to use the fork since feature is already there
-      - name: remove triage
-        uses: tspascoal/labeler@master
+      - name: remove triage and add approved
+        uses: andymckay/labeler@1.0.3
         with:
-          number: ${{ env.issue-number }}
+          issue-number: ${{ env.issue-number }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           remove-labels: "Triage"
           add-labels: "Approved"
@@ -42,14 +41,15 @@ jobs:
           set-fields: '{ "Status": "1-Approved" }'
 
       - name: Assign Issue
-        uses: pozil/auto-assign-issue@v1
+        uses: ./actions/assign-issue
         if: github.event.client_payload.data.architects == ''
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
           assignees: ${{ github.event.client_payload.data.architects }}
+          number: ${{ env.issue-number }}
 
-      - uses: ./actions/send-unclosed-issue-notification
+      - uses: ./actions/send-notification-issues
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           issues-list: ${{ env.issue-number }}
           content-path: .github/templates/engagement-assigned.md
 
