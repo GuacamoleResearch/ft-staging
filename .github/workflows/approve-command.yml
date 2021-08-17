@@ -29,7 +29,6 @@ jobs:
         uses: tspascoal/labeler@master
         with:
           number: ${{ env.issue-number }}
-          # TODO: test with github_token
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           remove-labels: "Triage"
           add-labels: "Approved"
@@ -41,6 +40,13 @@ jobs:
           issue-number: ${{ env.issue-number }}
           token: ${{ secrets.ORG_PAT }}
           set-fields: '{ "Status": "1-Approved" }'
+
+      - name: Assign Issue
+        uses: pozil/auto-assign-issue@v1
+        if: github.event.client_payload.data.architects == ''
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: ${{ github.event.client_payload.data.architects }}
     
 
 
