@@ -11,12 +11,12 @@ steps:
   - type: form
     style: modal
     body:
-      type: input
-      attributes:
-        label: Architects
-        description: Architects assigned to this engagement (optional)
-      validations:
-        required: false
+      - type: input
+        attributes:
+          label: Architects
+          description: Architects assigned to this engagement (optional)
+        validations:
+          required: false
 
 #  - type: form
 #   style: modal
