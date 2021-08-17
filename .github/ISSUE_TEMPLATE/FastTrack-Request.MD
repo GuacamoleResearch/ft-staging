@@ -1,5 +1,5 @@
 ---
-name: FastTrack Requests
+name: FastTrack Request (LEGACY TO BE DELETED)
 about: Template to be used to request a FastTrack from a GitHub Account
 title: ''
 labels: Triage

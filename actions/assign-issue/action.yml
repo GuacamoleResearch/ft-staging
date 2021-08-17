@@ -1,0 +1,18 @@
+name: 'send-notification-issues'
+description: 'Notify issue assignees with a issue comment based on a file'
+author: 'tspascoal'
+inputs:
+  token:
+    required: false
+    description: auth token
+    default: ${{ github.token }}
+  number:
+    required: true
+    description: Issue Number
+  assignees:
+    required: true
+    description: list of people to assign issue to (comma separated)
+  
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
