@@ -47,6 +47,13 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           assignees: ${{ github.event.client_payload.data.architects }}
+
+      - uses: ./actions/send-unclosed-issue-notification
+        with:
+          issues-list: ${{ env.issue-number }}
+          content-path: .github/templates/engagement-assigned.md
+
+
     
 
 
