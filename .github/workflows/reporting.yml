@@ -6,36 +6,18 @@ on:
 jobs:
   generate_status_report:
     runs-on: ubuntu-latest
-    env:
-      FASTTRACK_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # env:
+    #   FASTRACK_PROJECT_SECRET: ${{ secrets.GITHUB_TOKEN }}
+    # ORG
+    # PROJ
+    # REPO
+    # DISC_ID
     steps:
       - uses: actions/checkout@v2
       - name: Install Prereqs
         run: pip install requests
       - name: Generate summary
-        shell: python
-        run: |
-      - name: Update summary file
-        run: |
-          set -x
-          git config --global user.email "unknown@github.com"
-          git config --global user.name "$GITHUB_ACTOR"
+        working-directory: .github/workflows
+        run: python reporting.py
 
-          git pull
-          {
-              git checkout UpdateSummary
-          } || {
-              git switch -f -C UpdateSummary
-          }
-          
-          mv StatusSummary-staging.md StatusSummary.md
-          git add StatusSummary.md
-          git commit -m "Update FastTrack status"
-
-          {
-            git push
-          } || {
-            git push --set-upstream origin UpdateSummary
-          }
-          
-          set +x
+      

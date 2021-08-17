@@ -112,6 +112,8 @@ def MergeIssueData(project_issue_results):
           fieldName = field['projectField']['name']
           issue[fieldName] = field['value']
         issue['Status'] = MapStatusField(project_issue_results, issue)
+      # Handle exception case for issues not yet on the board
+      if not issue.get('Status'): issue['Status'] = '' 
 
   return issue_list
 
@@ -186,7 +188,6 @@ def GetIssueSummary(issues, target_labels):
 
   return md
 
-
 #
 # GetIssueDetails - Build list of issues by state with hyperlinks
 def GetIssueDetails(issues):
@@ -198,7 +199,7 @@ def GetIssueDetails(issues):
       issue_link = FormatUrl(ORGANIZATION, REPOSITORY, issue['Number'])
       if not status_list.get(status['name']):
         status_list[status['name']] = []
-      if status['name'] == issue['Status']:
+      if issue.get('Status') and status['name'] == issue['Status']:
         status_list[status['name']].append("- [" + issue['Title'] + "](" + issue_link + ")\n")
 
     issue_details += '\n' + status['name'] + '\n'
