@@ -7,7 +7,7 @@ surfaces:
   
 steps:
   - type: fill
-    template: "The FastTrack has been approved"
+    template: "The FastTrack has been approved by {{ data }}"
   - type: form
     style: modal
     body:
@@ -15,6 +15,7 @@ steps:
         attributes:
           label: Architects
           description: Architects assigned to this engagement (optional)
+          format: text
         validations:
           required: false
 
