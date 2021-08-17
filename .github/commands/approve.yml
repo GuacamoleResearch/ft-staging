@@ -10,11 +10,13 @@ steps:
     template: "The FastTrack has been approved"
   - type: form
     style: modal
-    attributes:
-      label: Architects
-      description: Architects assigned to this engagement (optional)
-    validations:
-      required: false
+    body:
+      type: input
+      attributes:
+        label: Architects
+        description: Architects assigned to this engagement (optional)
+      validations:
+        required: false
 
 #  - type: form
 #   style: modal
