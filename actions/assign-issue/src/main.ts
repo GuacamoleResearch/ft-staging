@@ -15,7 +15,9 @@ async function run(): Promise<void> {
 
     const octokit = github.getOctokit(token)
 
-    core.info(`Assigning issue ${number} to users ${JSON.stringify(assignees)}`)
+    core.info(
+      `Assigning issue ${number} to users ${JSON.stringify(assignees)} `
+    )
 
     await octokit.rest.issues.addAssignees({
       owner: github.context.repo.owner,

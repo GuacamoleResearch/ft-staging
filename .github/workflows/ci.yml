@@ -25,25 +25,31 @@ jobs:
         run: |
           npm ci
           npm run all
-        working-directory: actions//append-to-issue
+        working-directory: append-to-issue
 
       - name: buld and test get-unclosed-issue-passed-due-date
         run: |
           npm ci
           npm run all
-        working-directory: actions/get-unclosed-issue-passed-due-date
+        working-directory: get-unclosed-issue-passed-due-date
         
       - name: buld and test send-notification-issues
         run: |
           npm ci
           npm run all
-        working-directory: actions/send-notification-issues
+        working-directory: send-notification-issues
 
-      - name: buld and test /add-issue-to-project
+      - name: buld and test add-issue-to-project
         run: |
           npm ci
           npm run all
         working-directory: actions/add-issue-to-project
+
+      - name: buld and test assign-issue
+        run: |
+          npm ci
+          npm run all
+        working-directory: actions/assign-issue
 
   analyze:
     name: CodeQL Analyze

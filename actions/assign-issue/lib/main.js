@@ -41,7 +41,7 @@ function run() {
                 .split(',')
                 .map(assigneeName => assigneeName.trim());
             const octokit = github.getOctokit(token);
-            core.info(`Assigning issue ${number} to users ${JSON.stringify(assignees)}`);
+            core.info(`Assigning issue ${number} to users ${JSON.stringify(assignees)} `);
             yield octokit.rest.issues.addAssignees({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,

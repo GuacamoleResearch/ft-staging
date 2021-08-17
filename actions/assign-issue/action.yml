@@ -9,6 +9,9 @@ inputs:
   number:
     required: true
     description: Issue Number
+  assignees:
+    required: true
+    description: list of people to assign issue to (comma separated)
   
 runs:
   using: 'node12'
