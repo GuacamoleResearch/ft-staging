@@ -1,4 +1,3 @@
-from sqlite3 import Date
 import requests
 import json
 import os
@@ -6,9 +5,9 @@ import datetime
 import re
 
 # TODO: Known issues based on testing in prod...
-# - No heading for the empty columns of summary tables
-# - Sort order of columns (as shown in production)
 # - TBD row is all zeros but should have some data
+# - [DONE] No heading for the empty columns of summary tables
+# - [DONE]Sort order of columns (as shown in production)
 
 #region Configuration Variables
 ORGANIZATION  = os.environ.get('ORG')  or "GuacamoleResearch"
@@ -18,13 +17,13 @@ DISCUSSION_ID = os.environ.get('DISC_ID') or "MDEwOkRpc2N1c3Npb24zNTIzOTQy"
 STATUS_MAP    = None
 
 # Debugging in the production instance...
-# ORGANIZATION = 'github'
-# PROJECT_NUM = 2890
-# REPOSITORY = 'FastTrack'
-# DISCUSSION_ID = 'MDEwOkRpc2N1c3Npb24zNTI4MTE5'
+ORGANIZATION = 'github'
+PROJECT_NUM = 2890
+REPOSITORY = 'FastTrack'
+DISCUSSION_ID = 'MDEwOkRpc2N1c3Npb24zNTI4MTE5'
 #endregion
 
-#region FUNCTIONS: Build master isse list
+#region FUNCTIONS: Build master issue list
 #
 # GetProjectData - Returns query results for FastTrack Issues + Memex
 def GetProjectData(org, project, repo):
@@ -186,8 +185,9 @@ def GetIssueSummary(issues, target_labels):
   # Convert the data structure to MD
   # Start with the header
   md = '| '
-  for status in rows['TBD'].keys():
-    md += '| ' + status
+  for status in sorted(rows['TBD']):
+    row_header = status if (status!='') else 'None'
+    md += '| ' + row_header
   md += ' |\n|-|-|-|-|-|-|\n'
   
   # Add the body of the table
@@ -242,6 +242,7 @@ def CountChecklist(issue_description):
   results = {'pre':preengagement, 'delivery': delivery, 'post': postengagement}
   return results
 
+# CountChecklistForRegion - Performs the actual [x] parsing for an individual segment of the overall checklist
 def CountChecklistForRegion(regex, issue_description):
   checked = 0
   unchecked = 0
@@ -281,6 +282,8 @@ def UpdateDiscussion(discussionId, title, body):
 
 #endregion
 
+
+#----------------------------------------------------------------------------
 #----------------------------------------------------------------------------
 #
 # Begin Main
@@ -297,10 +300,8 @@ travel_smmary_md = GetIssueSummary(issues, [':house:',':airplane:'])
 
 # Write the report to the reporting discussion description and title
 body = '## Regional Summary\n\n' + region_summary_md + '\n\n## Travel Summary\n\n' + travel_smmary_md + '\n\n## Request Details\n\n' + issue_details_md
-title = 'FastTrack Summary Report - ' + str(Date.today())
-UpdateDiscussion(DISCUSSION_ID, title, body)
+title = 'FastTrack Summary Report - ' + str(datetime.date.today())
 
-# # Emit report
-# print(region_summary_md)
-# print(travel_smmary_md)
-# print(issue_details_md)
+print(title)
+print(body)
+# UpdateDiscussion(DISCUSSION_ID, title, body)
