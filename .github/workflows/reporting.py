@@ -5,12 +5,23 @@ import os
 import datetime
 import re
 
+# TODO: Known issues based on testing in prod...
+# - No heading for the empty columns of summary tables
+# - Sort order of columns (as shown in production)
+# - TBD row is all zeros but should have some data
+
 #region Configuration Variables
 ORGANIZATION  = os.environ.get('ORG')  or "GuacamoleResearch"
 PROJECT_NUM   = os.environ.get('PROJ') or 4
 REPOSITORY    = os.environ.get('REPO') or "ft-staging"
 DISCUSSION_ID = os.environ.get('DISC_ID') or "MDEwOkRpc2N1c3Npb24zNTIzOTQy"
 STATUS_MAP    = None
+
+# Debugging in the production instance...
+# ORGANIZATION = 'github'
+# PROJECT_NUM = 2890
+# REPOSITORY = 'FastTrack'
+# DISCUSSION_ID = 'MDEwOkRpc2N1c3Npb24zNTI4MTE5'
 #endregion
 
 #region FUNCTIONS: Build master isse list
