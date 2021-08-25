@@ -4,17 +4,13 @@ import os
 import datetime
 import re
 
-# TODO: Known issues based on testing in prod...
-# - TBD row is all zeros but should have some data
-# - [DONE] No heading for the empty columns of summary tables
-# - [DONE]Sort order of columns (as shown in production)
-
 #region Configuration Variables
 ORGANIZATION  = os.environ.get('ORG')  or "GuacamoleResearch"
 PROJECT_NUM   = os.environ.get('PROJ') or 4
 REPOSITORY    = os.environ.get('REPO') or "ft-staging"
 DISCUSSION_ID = os.environ.get('DISC_ID') or "MDEwOkRpc2N1c3Npb24zNTIzOTQy"
 STATUS_MAP    = None
+STATUS_HEADERS= {'':0, '1-Approved':0, '2-Scheduled':0, '3-Delivering':0, '4-Done':0}
 
 # Debugging in the production instance...
 ORGANIZATION = 'github'
@@ -162,30 +158,24 @@ def MapStatusField(query_results, issue):
 # GetIssueSummary - Build summary issue count by status (columns) and region or remote (rows)
 def GetIssueSummary(issues, target_labels):
   # Initialize data structure based on target labels
-  rows = {'TBD':{'':0, '1-Approved':0, '2-Scheduled':0, '3-Delivering':0, '4-Done':0}}
-  for label in target_labels: rows[label] = {}
+  rows = {'TBD':dict.copy(STATUS_HEADERS)}
+  for label in target_labels: rows[label] = dict.copy(STATUS_HEADERS)
 
-  # TODO: The count results are complete off.  Need to review logic.
-  # Generate a per-label, per-status count
+  # Generate a per-label, per-status counts
   for issue in issues:
     labels = issue['Labels']
     found_row = False
     for row in rows:
-      if not rows[row].get(issue['Status']): 
-        rows[row][issue['Status']] = 0
       if str(labels).find(row) >= 0:
         rows[row][issue['Status']] += 1
         found_row = True
     if not found_row: 
-      if not rows[row].get('TBD'):
-        rows[row]['TBD'] = 1
-      else:
-        rows[row]['TBD'] += 1
+      rows['TBD'][issue['Status']] += 1
 
   # Convert the data structure to MD
   # Start with the header
   md = '| '
-  for status in sorted(rows['TBD']):
+  for status in sorted(STATUS_HEADERS):
     row_header = status if (status!='') else 'None'
     md += '| ' + row_header
   md += ' |\n|-|-|-|-|-|-|\n'
