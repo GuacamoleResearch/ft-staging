@@ -162,10 +162,10 @@ def MapStatusField(query_results, issue):
 # GetIssueSummary - Build summary issue count by status (columns) and region or remote (rows)
 def GetIssueSummary(issues, target_labels):
   # Initialize data structure based on target labels
-  rows = {'TBD':{}}
+  rows = {'TBD':{'':0, '1-Approved':0, '2-Scheduled':0, '3-Delivering':0, '4-Done':0}}
   for label in target_labels: rows[label] = {}
 
-  # TODO: The appears to be a bug in capturing the TBD counts - currently all '0'
+  # TODO: The count results are complete off.  Need to review logic.
   # Generate a per-label, per-status count
   for issue in issues:
     labels = issue['Labels']
@@ -304,4 +304,4 @@ title = 'FastTrack Summary Report - ' + str(datetime.date.today())
 
 print(title)
 print(body)
-# UpdateDiscussion(DISCUSSION_ID, title, body)
+UpdateDiscussion(DISCUSSION_ID, title, body)
