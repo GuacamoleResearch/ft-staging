@@ -6,6 +6,8 @@ on:
 jobs:
   generate_status_report:
     runs-on: ubuntu-latest
+    env:
+      FASTRACK_PROJECT_SECRET: ${{ secrets.FASTRACK_PROJECT_SECRET }}
     # env:
     #   FASTRACK_PROJECT_SECRET: ${{ secrets.GITHUB_TOKEN }}
     # ORG
