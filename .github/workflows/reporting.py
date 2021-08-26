@@ -1,3 +1,4 @@
+from array import array
 import requests
 import json
 import os
@@ -211,6 +212,73 @@ def GetIssueDetails(issues):
 
 #endregion
 
+#region: FUNCTIONS: Exception reporting
+
+#
+# GetExceptions - Generate a list of exceptions by assignee
+def GetExceptions(issues):
+  issues_list = {}
+
+  # Loop through all issues and build a list of exceptions
+  for issue in issues:
+    ProcessExceptions(issues_list, issue)
+
+  # Convert the data structure to MD
+  exception_md = ''
+  for assignee in issues_list:
+    exception_md += '\n' + assignee + ' - Please review the following exceptions:\n'
+    for message in issues_list[assignee]:
+      exception_md += '\n' + message
+    exception_md += '\n'
+
+  return exception_md
+
+def ProcessExceptions(issues_list, issue):
+  # Initialize Data
+  assignees = issue['Assignees']
+  status = issue['Status']
+  followup = datetime.datetime.strptime(issue['Followup'], '%Y-%m-%dT00:00:00+00:00') if issue.get('Followup') else datetime.datetime.now()
+  issue_title = issue['Title']
+  issue_id = issue['Number']
+  checklists = CountChecklist(issue['Body'])
+
+  # Process global exceptions then exceptions for each status
+  if (checklists == None) or (checklists['pre'] == None) or (checklists['post'] == None) or (checklists['delivery'] == None):
+      AddException(issues_list, '@dmckinstry', issue_title, issue_id, 'Invalid checklist for {issue_link}')
+  # Only look for exceptions after followup dates
+  elif followup <= datetime.datetime.now():
+    if status == '1-Approved':
+      # TODO: Exceptions for approved requests
+      if checklists['pre']['checked'] < 3:
+        AddException(issues_list, 'dmckinstry', issue_title, issue_id, 'Incomplete pre-engagement checklist for Approved {issue_link} FastTrack')
+    elif status == '2-Scheduled':
+      # TODO: Exceptions for scheduled requests
+      if checklists['pre']['unchecked'] > 0:
+        AddException(issues_list, 'dmckinstry', issue_title, issue_id, 'Incomplete pre-engagement checklist for Scheduled {issue_link} FastTrack')
+    elif status == '3-Delivering':
+      # TODO: Exceptions for delivery scheduling
+      if checklists['delivery']['unchecked'] > 0:
+        AddException(issues_list, 'dmckinstry', issue_title, issue_id, 'Incomplete delivery checklist for the {issue_link} FastTrack')
+    elif status == '4-Done':
+      # TODO: Exceptions for completed requests
+      if checklists['delivery']['unchecked'] > 0:
+        AddException(issues_list, 'dmckinstry', issue_title, issue_id, 'Incomplete delivery checklist for the {issue_link} FastTrack')
+      if checklists['post']['unchecked'] > 0:
+        AddException(issues_list, assignees, issue_title, issue_id, 'Incomplete delivery checklist for the {issue_link} FastTrack')
+
+#
+# AddException - Add an exception to the list
+def AddException(issues_list, assignees, issue_title, issue_id, message):
+  if type(assignees) is str: assignees = [re.sub(r"[\['\]]", "", assignees)]
+  for assignee in assignees:
+    if not issues_list.get(assignee):
+      issues_list[assignee] = []
+
+    issue_link = '[' + issue_title + '](' + FormatUrl(ORGANIZATION, REPOSITORY, issue_id) +')'
+    issues_list[assignee].append('- ' + message.replace('{issue_link}', issue_link))
+
+#endregion
+
 #region FUNCTIONS: Utilities
 #
 # FormatUrl - Returns markdown for a link with the title for a given issue
@@ -240,10 +308,11 @@ def CountChecklistForRegion(regex, issue_description):
     checklist_block = re.search(regex, issue_description).group()
     unchecked = re.findall(r'- \[ \]', checklist_block)
     checked = re.findall(r'- \[x\]', checklist_block, re.IGNORECASE)
+    results = { 'checked': checked.count('- [x]') + checked.count('- [X]'), 'unchecked': unchecked.count('- [ ]')}
   except:
     print("*** Missing checklist block for regex ", regex)
+    results = None
 
-  results = { 'checked': checked.count('- [x]') + checked.count('- [X]'), 'unchecked': unchecked.count('- [ ]')}
   return results
 
 #
@@ -287,9 +356,10 @@ issues = MergeIssueData(issue_data)
 issue_details_md = GetIssueDetails(issues)
 region_summary_md = GetIssueSummary(issues, ['AMER','APAC','EMEA'])
 travel_smmary_md = GetIssueSummary(issues, [':house:',':airplane:'])
+exception_md = GetExceptions(issues)
 
 # Write the report to the reporting discussion description and title
-body = '## Regional Summary\n\n' + region_summary_md + '\n\n## Travel Summary\n\n' + travel_smmary_md + '\n\n## Request Details\n\n' + issue_details_md
+body = '## Regional Summary\n\n' + region_summary_md + '\n\n## Travel Summary\n\n' + travel_smmary_md + '\n\n## Request Details\n\n' + issue_details_md + '\n\n## Exceptions\n\n' + exception_md
 title = 'FastTrack Summary Report - ' + str(datetime.date.today())
 
 print(title)
