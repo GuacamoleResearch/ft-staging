@@ -8,12 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FASTRACK_PROJECT_SECRET: ${{ secrets.FASTRACK_PROJECT_SECRET }}
-    # env:
-    #   FASTRACK_PROJECT_SECRET: ${{ secrets.GITHUB_TOKEN }}
-    # ORG
-    # PROJ
-    # REPO
-    # DISC_ID
+      ORG: GuacamoleResearch
+      PROJ: 4
+      REPO: ft-staging
+      DISC_ID: MDEwOkRpc2N1c3Npb24zNTIzOTQy
+
     steps:
       - uses: actions/checkout@v2
       - name: Install Prereqs
