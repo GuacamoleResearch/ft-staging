@@ -3,5 +3,10 @@
         "activityBar.background": "#5C1101",
         "titleBar.activeBackground": "#811801",
         "titleBar.activeForeground": "#FFFBFA"
-    }
+    },
+    "python.testing.pytestArgs": [
+        "./.github/workflows"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }

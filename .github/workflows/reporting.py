@@ -277,6 +277,11 @@ def AddException(issues_list, assignees, issue_title, issue_id, message):
     issue_link = '[' + issue_title + '](' + FormatUrl(ORGANIZATION, REPOSITORY, issue_id) +')'
     issues_list[assignee].append('- ' + message.replace('{issue_link}', issue_link))
 
+#
+# GetReportTitle - Get the title of the report
+def GetReportTitle():
+  return 'FastTrack Status Report (week of ' + str(GetMondayDate()) + ')' 
+
 #endregion
 
 #region FUNCTIONS: Utilities
@@ -339,8 +344,14 @@ def UpdateDiscussion(discussionId, title, body):
   else:
     return
 
-#endregion
+#
+# GetMondayDate - Returns a Date object containing the Monday preceding (or today) the passed param
+def GetMondayDate(input_date = datetime.datetime.now()):
+  # Get the date of the Monday of the given date
+  results = input_date - datetime.timedelta(days=input_date.weekday())
+  return results.date() if type(results) == datetime.datetime else results
 
+#endregion
 
 #----------------------------------------------------------------------------
 #----------------------------------------------------------------------------
