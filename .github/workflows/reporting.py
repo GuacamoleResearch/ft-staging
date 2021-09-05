@@ -370,8 +370,8 @@ travel_smmary_md = GetIssueSummary(issues, [':house:',':airplane:'])
 exception_md = GetExceptions(issues)
 
 # Write the report to the reporting discussion description and title
-body = '## Regional Summary\n\n' + region_summary_md + '\n\n## Travel Summary\n\n' + travel_smmary_md + '\n\n## Request Details\n\n' + issue_details_md + '\n\n## Exceptions\n\n' + exception_md
-title = 'FastTrack Summary Report - ' + str(datetime.date.today())
+body = '## Regional Summary\n*Last Updated: ' + str(datetime.date.today()) + '*\n\n' + region_summary_md + '\n\n## Travel Summary\n\n' + travel_smmary_md + '\n\n## Request Details\n\n' + issue_details_md + '\n\n## Exceptions\n\n' + exception_md
+title = 'FastTrack Summary Report - ' + GetReportTitle()
 
 print(title)
 print(body)

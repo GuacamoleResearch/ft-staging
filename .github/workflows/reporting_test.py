@@ -2,7 +2,13 @@ import reporting
 import datetime as dt
 
 #
-# Unit Test - FormatUrl
+# Unit Test - DatesFromIssueTitle
+def test_DatesFromIssueTitle():
+  title = 'Contoso (12/30-12/31)'
+  results = reporting.DatesFromIssueTitle(title)
+  year = dt.date.today().year
+  assert results['start'] == dt.date(year, 12, 30)
+  assert results['finish'] == dt.date(year, 12, 31)
 
 #
 # Unit Test - CountChecklist
