@@ -76,11 +76,10 @@ DISCUSSION_ID = 'MDEwOkRpc2N1c3Npb24zNTI4MTE5'
 #endregion
 
 #region FUNCTIONS: Build master issue list
-#
-# get_project_data - Returns query results for FastTrack Issues + Memex
 def get_project_data(org, project, repo):
+    '''Returns query results for FastTrack Issues + Memex'''
     # First, get the report title for this week
-    report_title = 'foo' # GetReportTitle()
+    report_title = 'foo' # get_report_title()
 
     # Standard Python Format doesn't seem to work with multi-line, so using 'replace'
     issue_query = GRAPHQL_QUERY.replace("{0}", org).\
@@ -97,9 +96,8 @@ def get_project_data(org, project, repo):
     else:
         return
 
-#
-# merge_issue_data - Merges thhe project and issue data in a unified issue list:
 def merge_issue_data(project_issue_results):
+    '''Merges thhe project and issue data in a unified issue list'''
     issue_list = []
 
     # Capture all issues from the query
@@ -138,9 +136,8 @@ def merge_issue_data(project_issue_results):
 
     return issue_list
 
-#
-# dates_from_isse_title: Parses start and end dates
 def dates_from_isse_title(title):
+    '''Parses start and end dates'''
     try:
         date_range_strings = title.rsplit("(")[1].split(")")[0].split("-")
         date_range = []
@@ -154,9 +151,8 @@ def dates_from_isse_title(title):
     except:
         return {"start": None, "finish": None}
 
-#
-# map_status_field - Converts status IDs into status text
 def map_status_field(query_results, issue):
+    '''Converts status IDs into status text'''
     global STATUS_MAP
     if STATUS_MAP is None:
         fields = query_results['data']['organization']['projectNext']['fields']['nodes']
@@ -167,13 +163,11 @@ def map_status_field(query_results, issue):
     status_text = list(filter(lambda x:(x['id']==issue['Status']), STATUS_MAP))[0]['name'] \
         if issue.get('Status') else ''
     return status_text
-
 #endregion
 
 #region FUNCTIONS: Process Issue data
-#
-# get_issue_summary - Build summary issue count by status (columns) and region or remote (rows)
 def get_issue_summary(issues, target_labels):
+    '''Build summary issue count by status (columns) and region or remote (rows)'''
     # Initialize data structure based on target labels
     rows = {'TBD':dict.copy(STATUS_HEADERS)}
     for label in target_labels:
@@ -207,9 +201,8 @@ def get_issue_summary(issues, target_labels):
 
     return markdown
 
-#
-# get_issue_details - Build list of issues by state with hyperlinks
 def get_issue_details(issues):
+    '''Build list of issues by state with hyperlinks'''
     global STATUS_MAP, ORGANIZATION, REPOSITORY
     status_list = {}
     issue_details = ''
@@ -227,14 +220,11 @@ def get_issue_details(issues):
             issue_details += issue_text
 
     return issue_details
-
 #endregion
 
 #region: FUNCTIONS: Exception reporting
-
-#
-# get_exceptions - Generate a list of exceptions by assignee
 def get_exceptions(issues):
+    '''Generate a list of exceptions by assignee'''
     issues_list = {}
 
     # Loop through all issues and build a list of exceptions
@@ -242,17 +232,17 @@ def get_exceptions(issues):
         process_exceptions(issues_list, issue)
 
     # Convert the data structure to MD
-    exception_md = ''
+    exception_markdown = ''
     for assignee in issues_list:
-        exception_md += '\n' + assignee + ' - Please review the following exceptions:\n'
+        exception_markdown += '\n' + assignee + ' - Please review the following exceptions:\n'
         for message in issues_list[assignee]:
-            exception_md += '\n' + message
-        exception_md += '\n'
+            exception_markdown += '\n' + message
+        exception_markdown += '\n'
 
-    return exception_md
+    return exception_markdown
 
-# process_exceptions - Review checklists and statuses for exceptions
 def process_exceptions(issues_list, issue):
+    '''Review checklists and statuses for exceptions'''
     # Initialize Data
     assignees = issue['Assignees']
     status = issue['Status']
@@ -265,37 +255,36 @@ def process_exceptions(issues_list, issue):
     # Process global exceptions then exceptions for each status
     if (checklists is None) or (checklists['pre'] is None) \
         or (checklists['post'] is None) or (checklists['delivery'] is None):
-        add_exceptios(issues_list, '@dmckinstry', issue_title, \
+        add_exception(issues_list, '@dmckinstry', issue_title, \
             issue_id, 'Invalid checklist for {issue_link}')
     # Only look for exceptions after followup dates
     elif followup <= datetime.datetime.now():
         if status == '1-Approved':
             # TODO: Exceptions for approved requests
             if checklists['pre']['checked'] < 3:
-                add_exceptios(issues_list, 'dmckinstry', issue_title, issue_id, \
+                add_exception(issues_list, 'dmckinstry', issue_title, issue_id, \
                     'Incomplete pre-engagement checklist for Approved {issue_link} FastTrack')
         elif status == '2-Scheduled':
             #TODO: Exceptions for scheduled requests
             if checklists['pre']['unchecked'] > 0:
-                add_exceptios(issues_list, 'dmckinstry', issue_title, issue_id, \
+                add_exception(issues_list, 'dmckinstry', issue_title, issue_id, \
                     'Incomplete pre-engagement checklist for Scheduled {issue_link} FastTrack')
         elif status == '3-Delivering':
             #TODO: Exceptions for delivery scheduling
             if checklists['delivery']['unchecked'] > 0:
-                add_exceptios(issues_list, 'dmckinstry', issue_title, issue_id, \
+                add_exception(issues_list, 'dmckinstry', issue_title, issue_id, \
                     'Incomplete delivery checklist for the {issue_link} FastTrack')
         elif status == '4-Done':
             #TODO: Exceptions for completed requests
             if checklists['delivery']['unchecked'] > 0:
-                add_exceptios(issues_list, 'dmckinstry', issue_title, issue_id, \
+                add_exception(issues_list, 'dmckinstry', issue_title, issue_id, \
                     'Incomplete delivery checklist for the {issue_link} FastTrack')
             if checklists['post']['unchecked'] > 0:
-                add_exceptios(issues_list, assignees, issue_title, issue_id, \
+                add_exception(issues_list, assignees, issue_title, issue_id, \
                     'Incomplete delivery checklist for the {issue_link} FastTrack')
 
-#
-# add_exceptios - Add an exception to the list
-def add_exceptios(issues_list, assignees, issue_title, issue_id, message):
+def add_exception(issues_list, assignees, issue_title, issue_id, message):
+    '''Add an exception to the list'''
     if type(assignees) is str:
         assignees = [re.sub(r"[\['\]]", "", assignees)]
     for assignee in assignees:
@@ -305,14 +294,12 @@ def add_exceptios(issues_list, assignees, issue_title, issue_id, message):
         issue_link = '[' + issue_title + '](' + format_url(ORGANIZATION, REPOSITORY, issue_id) +')'
         issues_list[assignee].append('- ' + message.replace('{issue_link}', issue_link))
 
-#
-# GetReportTitle - Get the title of the report
-def GetReportTitle():
+def get_report_title():
+    '''Get the title of the report'''
     return 'FastTrack Status Report (week of ' + str(get_monday_date()) + ')'
 
-#
-# GetReportDiscussionId - Get the discussion ID for the report
-def GetReportDiscussionId(query_results):
+def get_report_discussion_id(query_results):
+    '''Get the discussion ID for the report'''
     id = query_results['data']['search']['nodes'][0]['id'] \
         if query_results['data']['search']['nodes'] else None
 
@@ -326,14 +313,12 @@ def GetReportDiscussionId(query_results):
 #endregion
 
 #region FUNCTIONS: Utilities
-#
-# format_url - Returns markdown for a link with the title for a given issue
 def format_url(org, repo, issue_id):
+    '''Returns markdown for a link with the title for a given issue'''
     return 'https://github.com/{0}/{1}/issues/{2}'.format(org, repo, issue_id)
 
-#
-# count_checklist - Parse the issue description to count "[ ]" and "[x]" per checklist
 def count_checklist(issue_description):
+    '''Parse the issue description to count "[ ]" and "[x]" per checklist'''
     # Pre-engagement Regex - "### Pre((.|\n)*)### Del"
     preengagement = count_checklist_for_region("### Pre((.|\n)*)### Del", issue_description)
 
@@ -346,9 +331,8 @@ def count_checklist(issue_description):
     results = {'pre':preengagement, 'delivery': delivery, 'post': postengagement}
     return results
 
-# count_checklist_for_region - Performs the actual [x] parsing
-# for an individual segment of the overall checklist
 def count_checklist_for_region(regex, issue_description):
+    '''Performs the actual [x] parsing for an individual segment of the overall checklist'''
     checked = 0
     unchecked = 0
     try:
@@ -363,13 +347,12 @@ def count_checklist_for_region(regex, issue_description):
 
     return results
 
-#
-# update_discussion - Update the title and description of a specificed Discussion
-def update_discussion(discussionId, title, body):
+def update_discussion(discussion_id, title, body):
+    '''Update the title and description of a specificed Discussion'''
     # Configure the mutation based on input data
-    if discussionId:
-        mutation = 'mutation {update_discussion(input: {discussionId: "{discussionId}", body: "{body}", title: "{title}"}) {discussion {id}}}'
-        mutation = mutation.replace("{discussionId}", discussionId)
+    if discussion_id:
+        mutation = 'mutation {update_discussion(input: {discussion_id: "{discussion_id}", body: "{body}", title: "{title}"}) {discussion {id}}}'
+        mutation = mutation.replace("{discussion_id}", discussion_id)
     else:
         #TODO: Need Repository Id and Category Id
         mutation = 'mutation {createDiscussion(input: {body: "{body}", title: "{title}", repository: "{repository}", category:"{category}"}) {discussion {id}}}'
@@ -387,9 +370,8 @@ def update_discussion(discussionId, title, body):
     else:
         return
 
-#
-# get_monday_date - Returns a Date object containing the Monday preceding (or today) the passed param
 def get_monday_date(input_date = datetime.datetime.now()):
+    '''Returns a Date object containing the Monday preceding (or today) the passed param'''
     # Get the date of the Monday of the given date
     results = input_date - datetime.timedelta(days=input_date.weekday())
     return results.date() if type(results) == datetime.datetime else results
@@ -407,7 +389,7 @@ issue_data = get_project_data( ORGANIZATION, PROJECT_NUM, REPOSITORY)
 issues = merge_issue_data(issue_data)
 
 # Get the ID for the report discussion
-report_id = GetReportDiscussionId(issue_data)
+report_id = get_report_discussion_id(issue_data)
 
 # Build Status report
 issue_details_md = get_issue_details(issues)
@@ -421,8 +403,8 @@ body = '## Regional Summary\n*Last Updated: ' + str(datetime.date.today()) +\
     '\n\n## Travel Summary\n\n' + travel_smmary_md +\
     '\n\n## Request Details\n\n' + issue_details_md +\
     '\n\n## Exceptions\n\n' + exception_md
-title = GetReportTitle()
+TITLE = get_report_title()
 
-print(title)
+print(TITLE)
 print(body)
-update_discussion(DISCUSSION_ID, title, body)
+update_discussion(DISCUSSION_ID, TITLE, body)
