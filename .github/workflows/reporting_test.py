@@ -1,3 +1,4 @@
+'''Provides unit tests for FastTrack project board reporting module'''
 import datetime as dt
 import reporting
 
@@ -10,6 +11,8 @@ def test_dates_from_issue_title():
     year = dt.date.today().year
     assert results['start'] == dt.date(year, 12, 30)
     assert results['finish'] == dt.date(year, 12, 31)
+
+    #TODO: Add a cross-year-boundary test
 
 #
 # Unit Test - count_checklist

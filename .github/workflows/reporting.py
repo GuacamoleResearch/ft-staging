@@ -1,3 +1,4 @@
+'''Provides functions to process and report on the FastTrack project board'''
 import json
 import os
 import datetime
