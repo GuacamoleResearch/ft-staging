@@ -67,7 +67,6 @@ GRAPHQL_QUERY = """
   }
 }"""
 
-
 # Debugging in the production instance...
 ORGANIZATION = 'github'
 PROJECT_NUM = 2890
@@ -85,7 +84,7 @@ def get_project_data(org, project, repo):
     issue_query = GRAPHQL_QUERY.replace("{0}", org).\
         replace("{1}", str(project)).replace("{2}", repo).replace("{3}", report_title)
 
-    token = os.environ["FASTRACK_PROJECT_SECRET"]
+    token = os.environ["FASTTRACK_PROJECT_TOKEN"]
     response = requests.post(
         'https://api.github.com/graphql',
         json={'query':issue_query},
@@ -113,7 +112,7 @@ def merge_issue_data(project_issue_results):
             if node.get('assignees') else []
 
         # Add dates from title if they're available
-        dates = dates_from_isse_title(issue['Title'])
+        dates = dates_from_issue_title(issue['Title'])
         issue['Start_Date'] = dates['start']
         issue['End_Date']   = dates['finish']
 
@@ -136,7 +135,7 @@ def merge_issue_data(project_issue_results):
 
     return issue_list
 
-def dates_from_isse_title(title):
+def dates_from_issue_title(title):
     '''Parses start and end dates'''
     try:
         date_range_strings = title.rsplit("(")[1].split(")")[0].split("-")
