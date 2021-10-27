@@ -11,7 +11,7 @@ PROJECT_NUM   = os.environ.get('PROJ') or 4
 REPOSITORY    = os.environ.get('REPO') or "ft-staging"
 DISCUSSION_ID = os.environ.get('DISC_ID') or "MDEwOkRpc2N1c3Npb24zNTIzOTQy"
 STATUS_MAP    = None
-STATUS_HEADERS= {'':0, '1-Approved':0, '2-Scheduled':0, '3-Delivering':0, '4-Done':0}
+STATUS_HEADERS= {'':0, '1-Approved':0, '2-Scheduled':0, '3-Delivering':0, '4-Done':0, '5-Archive':0}
 GRAPHQL_QUERY = """
 {
   search(first: 1 query: "repo:{0}/{1} in:title {3}", type: DISCUSSION) {
@@ -351,7 +351,7 @@ def update_discussion(discussion_id, title, body):
     '''Update the title and description of a specificed Discussion'''
     # Configure the mutation based on input data
     if discussion_id:
-        mutation = 'mutation {update_discussion(input: {discussion_id: "{discussion_id}", body: "{body}", title: "{title}"}) {discussion {id}}}'
+        mutation = 'mutation {updateDiscussion(input: {discussionId: "{discussion_id}", body: "{body}", title: "{title}"}) {discussion {id}}}'
         mutation = mutation.replace("{discussion_id}", discussion_id)
     else:
         #TODO: Need Repository Id and Category Id
@@ -359,7 +359,7 @@ def update_discussion(discussion_id, title, body):
 
     mutation = mutation.replace("{body}", body).replace("{title}", title)
 
-    token = os.environ["FASTRACK_PROJECT_SECRET"]
+    token = os.environ["FASTTRACK_PROJECT_TOKEN"]
     response = requests.post(
         'https://api.github.com/graphql',
         json={'query':mutation},
