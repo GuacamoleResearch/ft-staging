@@ -127,8 +127,8 @@ def merge_issue_data(project_issue_results):
             if issue['Title'] == node['title']:
                 # Promote custom fields
                 for field in node['fieldValues']['nodes']:
-                    fieldName = field['projectField']['name']
-                    issue[fieldName] = field['value']
+                    field_name = field['projectField']['name']
+                    issue[field_name] = field['value']
                 issue['Status'] = map_status_field(project_issue_results, issue)
             # Handle exception case for issues not yet on the board
             if not issue.get('Status'):
@@ -166,7 +166,7 @@ def map_status_field(query_results, issue):
 #endregion
 
 #region FUNCTIONS: Process Issue data
-def get_issue_summary(issues, target_labels):
+def get_issue_summary(issue_list, target_labels):
     '''Build summary issue count by status (columns) and region or remote (rows)'''
     # Initialize data structure based on target labels
     rows = {'TBD':dict.copy(STATUS_HEADERS)}
@@ -174,7 +174,7 @@ def get_issue_summary(issues, target_labels):
         rows[label] = dict.copy(STATUS_HEADERS)
 
     # Generate a per-label, per-status counts
-    for issue in issues:
+    for issue in issue_list:
         labels = issue['Labels']
         found_row = False
         for row in rows:
@@ -190,7 +190,7 @@ def get_issue_summary(issues, target_labels):
     for status in sorted(STATUS_HEADERS):
         row_header = status if (status!='') else 'None'
         markdown += '| ' + row_header
-    markdown += ' |\n|-|-|-|-|-|-|\n'
+    markdown += ' |\n|-|-|-|-|-|-|-|\n'
 
     # Add the body of the table
     for row in rows:
@@ -201,13 +201,13 @@ def get_issue_summary(issues, target_labels):
 
     return markdown
 
-def get_issue_details(issues):
+def get_issue_details(all_issues):
     '''Build list of issues by state with hyperlinks'''
     global STATUS_MAP, ORGANIZATION, REPOSITORY
     status_list = {}
     issue_details = ''
     for status in STATUS_MAP:
-        for issue in issues:
+        for issue in all_issues:
             issue_link = format_url(ORGANIZATION, REPOSITORY, issue['Number'])
             if not status_list.get(status['name']):
                 status_list[status['name']] = []
@@ -223,12 +223,12 @@ def get_issue_details(issues):
 #endregion
 
 #region: FUNCTIONS: Exception reporting
-def get_exceptions(issues):
+def get_exceptions(all_issues):
     '''Generate a list of exceptions by assignee'''
     issues_list = {}
 
     # Loop through all issues and build a list of exceptions
-    for issue in issues:
+    for issue in all_issues:
         process_exceptions(issues_list, issue)
 
     # Convert the data structure to MD
@@ -300,15 +300,15 @@ def get_report_title():
 
 def get_report_discussion_id(query_results):
     '''Get the discussion ID for the report'''
-    id = query_results['data']['search']['nodes'][0]['id'] \
+    discussion_id = query_results['data']['search']['nodes'][0]['id'] \
         if query_results['data']['search']['nodes'] else None
 
     #TODO: Create an exception if none exists
-    if not id:
+    if not discussion_id:
         print('No discussion found for the report - need to create one here')
-        id = DISCUSSION_ID # cop out for now...
+        discussion_id = DISCUSSION_ID # cop out for now...
 
-    return id
+    return discussion_id
 
 #endregion
 
@@ -347,7 +347,7 @@ def count_checklist_for_region(regex, issue_description):
 
     return results
 
-def update_discussion(discussion_id, title, body):
+def update_discussion(discussion_id, title, post_body):
     '''Update the title and description of a specificed Discussion'''
     # Configure the mutation based on input data
     if discussion_id:
@@ -357,7 +357,7 @@ def update_discussion(discussion_id, title, body):
         #TODO: Need Repository Id and Category Id
         mutation = 'mutation {createDiscussion(input: {body: "{body}", title: "{title}", repository: "{repository}", category:"{category}"}) {discussion {id}}}'
 
-    mutation = mutation.replace("{body}", body).replace("{title}", title)
+    mutation = mutation.replace("{body}", post_body).replace("{title}", title)
 
     token = os.environ["FASTTRACK_PROJECT_TOKEN"]
     response = requests.post(
