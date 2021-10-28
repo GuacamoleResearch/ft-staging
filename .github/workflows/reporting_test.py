@@ -12,7 +12,12 @@ def test_dates_from_issue_title():
     assert results['start'] == dt.date(year, 12, 30)
     assert results['finish'] == dt.date(year, 12, 31)
 
-    #TODO: Add a cross-year-boundary test
+    # Crossing year boundaries
+    title = 'Tailwinds (12/1-2/1)'
+    results = reporting.dates_from_issue_title(title)
+    year = dt.date.today().year
+    assert results['start'] == dt.date(year, 12, 1)
+    assert results['finish'] == dt.date(year+1, 2, 1)
 
 #
 # Unit Test - count_checklist

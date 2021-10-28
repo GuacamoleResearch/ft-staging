@@ -5,6 +5,8 @@ import datetime
 import re
 import requests
 
+# pylint: disable=C0321
+
 #region Configuration Variables
 ORGANIZATION  = os.environ.get('ORG')  or "GuacamoleResearch"
 PROJECT_NUM   = os.environ.get('PROJ') or 4
@@ -147,6 +149,9 @@ def dates_from_issue_title(title):
                 parts.append(str(datetime.date.today().year))
             the_date = datetime.date(int(parts[2]), int(parts[0]), int(parts[1]))
             date_range.append(the_date)
+        if date_range[1] < date_range[0]:
+            date_range[1] = datetime.date( \
+                date_range[1].year+1, date_range[1].month, date_range[1].day)
         return {"start": date_range[0], "finish": date_range[1]}
     except:
         return {"start": None, "finish": None}
@@ -177,9 +182,9 @@ def get_issue_summary(issue_list, target_labels):
     for issue in issue_list:
         labels = issue['Labels']
         found_row = False
-        for row in rows:
-            if str(labels).find(row) >= 0:
-                rows[row][issue['Status']] += 1
+        for row_label, status_count in rows.items():
+            if str(labels).find(row_label) >= 0:
+                status_count[issue['Status']] += 1
                 found_row = True
         if not found_row:
             rows['TBD'][issue['Status']] += 1
@@ -193,10 +198,10 @@ def get_issue_summary(issue_list, target_labels):
     markdown += ' |\n|-|-|-|-|-|-|-|\n'
 
     # Add the body of the table
-    for row in rows:
-        markdown += '| ' + row
-        for status in rows[row]:
-            markdown += '| ' + str(rows[row][status])
+    for row_label, status_count in rows.items():
+        markdown += '| ' + row_label
+        for status in status_count:
+            markdown += '| ' + str(status_count[status])
         markdown += ' |\n'
 
     return markdown
@@ -233,9 +238,9 @@ def get_exceptions(all_issues):
 
     # Convert the data structure to MD
     exception_markdown = ''
-    for assignee in issues_list:
+    for assignee, messages in issues_list.items():
         exception_markdown += '\n' + assignee + ' - Please review the following exceptions:\n'
-        for message in issues_list[assignee]:
+        for message in messages:
             exception_markdown += '\n' + message
         exception_markdown += '\n'
 
@@ -285,7 +290,7 @@ def process_exceptions(issues_list, issue):
 
 def add_exception(issues_list, assignees, issue_title, issue_id, message):
     '''Add an exception to the list'''
-    if type(assignees) is str:
+    if isinstance(assignees, str):
         assignees = [re.sub(r"[\['\]]", "", assignees)]
     for assignee in assignees:
         if not issues_list.get(assignee):
@@ -315,7 +320,7 @@ def get_report_discussion_id(query_results):
 #region FUNCTIONS: Utilities
 def format_url(org, repo, issue_id):
     '''Returns markdown for a link with the title for a given issue'''
-    return 'https://github.com/{0}/{1}/issues/{2}'.format(org, repo, issue_id)
+    return f'https://github.com/{org}/{repo}/issues/{issue_id}'
 
 def count_checklist(issue_description):
     '''Parse the issue description to count "[ ]" and "[x]" per checklist'''
@@ -374,7 +379,7 @@ def get_monday_date(input_date = datetime.datetime.now()):
     '''Returns a Date object containing the Monday preceding (or today) the passed param'''
     # Get the date of the Monday of the given date
     results = input_date - datetime.timedelta(days=input_date.weekday())
-    return results.date() if type(results) == datetime.datetime else results
+    return results.date() if isinstance(results, datetime.datetime) else results
 
 #endregion
 
