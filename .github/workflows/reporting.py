@@ -265,22 +265,18 @@ def process_exceptions(issues_list, issue):
     # Only look for exceptions after followup dates
     elif followup <= datetime.datetime.now():
         if status == '1-Approved':
-            # TODO: Exceptions for approved requests
             if checklists['pre']['checked'] < 3:
                 add_exception(issues_list, 'dmckinstry', issue_title, issue_id, \
                     'Incomplete pre-engagement checklist for Approved {issue_link} FastTrack')
         elif status == '2-Scheduled':
-            #TODO: Exceptions for scheduled requests
             if checklists['pre']['unchecked'] > 0:
                 add_exception(issues_list, 'dmckinstry', issue_title, issue_id, \
                     'Incomplete pre-engagement checklist for Scheduled {issue_link} FastTrack')
         elif status == '3-Delivering':
-            #TODO: Exceptions for delivery scheduling
             if checklists['delivery']['unchecked'] > 0:
                 add_exception(issues_list, 'dmckinstry', issue_title, issue_id, \
                     'Incomplete delivery checklist for the {issue_link} FastTrack')
         elif status == '4-Done':
-            #TODO: Exceptions for completed requests
             if checklists['delivery']['unchecked'] > 0:
                 add_exception(issues_list, 'dmckinstry', issue_title, issue_id, \
                     'Incomplete delivery checklist for the {issue_link} FastTrack')
@@ -304,12 +300,13 @@ def get_report_title():
     return 'FastTrack Status Report (week of ' + str(get_monday_date()) + ')'
 
 def get_report_discussion_id(query_results):
-    '''Get the discussion ID for the report'''
+    '''Get the discussion ID for the report and create if it doesn't exist'''
     discussion_id = query_results['data']['search']['nodes'][0]['id'] \
         if query_results['data']['search']['nodes'] else None
 
-    #TODO: Create an exception if none exists
+    # Create a discussion if it doesn't exist
     if not discussion_id:
+        #TODO: Create discussion
         print('No discussion found for the report - need to create one here')
         discussion_id = DISCUSSION_ID # cop out for now...
 
@@ -352,11 +349,10 @@ def count_checklist_for_region(regex, issue_description):
 
     return results
 
-def update_discussion(discussion_id, title, post_body):
+def set_discussion_description(discussion_id, title, post_body):
     '''Update the title and description of a specificed Discussion'''
     repository = 'TODO'
     category = 'TODO'
-
 
     # Configure the mutation based on input data
     if discussion_id:
@@ -365,9 +361,9 @@ def update_discussion(discussion_id, title, post_body):
         #TODO: Need to look up Repository Id and Category Id
         mutation = 'mutation {createDiscussion(input: {repository: ' \
             + f'"{repository}", category:"{category}", '
-
     mutation += f'body: "{post_body}", title: "{title}"}}) {{discussion {{id}}}}}}'
 
+    # Execute the mutation and return the discussion id
     token = os.environ["FASTTRACK_PROJECT_TOKEN"]
     response = requests.post(
         'https://api.github.com/graphql',
@@ -375,9 +371,16 @@ def update_discussion(discussion_id, title, post_body):
         headers={'Authorization':'bearer '+token, 'GraphQL-Features':'projects_next_graphql' }
     )
     if response:
-        return response.json()
-    else:
-        return
+        response_data = response.json()["data"]
+        return response_data["updateDiscussion"]["discussion"]["id"] \
+            if response_data["updateDiscussion"] \
+                else response_data["createDiscussion"]["discussion"]["id"]
+    return -1
+
+
+def add_discussion_comment(discussion_id, comment_markdown):
+    '''Add a new discussion comment for a given discussion'''
+    return
 
 def get_monday_date(input_date = datetime.datetime.now()):
     '''Returns a Date object containing the Monday preceding (or today) the passed param'''
@@ -410,10 +413,13 @@ exception_md = get_exceptions(issues)
 body = '## Regional Summary\n*Last Updated: ' + str(datetime.date.today()) +\
     '*\n\n' + region_summary_md +\
     '\n\n## Travel Summary\n\n' + travel_smmary_md +\
-    '\n\n## Request Details\n\n' + issue_details_md +\
-    '\n\n## Exceptions\n\n' + exception_md
+    '\n\n## Request Details\n\n' + issue_details_md
 TITLE = get_report_title()
 
 print(TITLE)
 print(body)
-update_discussion(DISCUSSION_ID, TITLE, body)
+discussion_identifier = set_discussion_description(DISCUSSION_ID, TITLE, body)
+
+discussion_comment = f'## Exceptions as of {datetime.datetime.utcnow()} UTC\n{exception_md}'
+print(discussion_comment)
+add_discussion_comment(discussion_identifier, discussion_comment)
