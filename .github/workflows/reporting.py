@@ -354,15 +354,19 @@ def count_checklist_for_region(regex, issue_description):
 
 def update_discussion(discussion_id, title, post_body):
     '''Update the title and description of a specificed Discussion'''
+    repository = 'TODO'
+    category = 'TODO'
+
+
     # Configure the mutation based on input data
     if discussion_id:
-        mutation = 'mutation {updateDiscussion(input: {discussionId: "{discussion_id}", body: "{body}", title: "{title}"}) {discussion {id}}}'
-        mutation = mutation.replace("{discussion_id}", discussion_id)
+        mutation = f'mutation {{updateDiscussion(input: {{discussionId: "{discussion_id}", '
     else:
-        #TODO: Need Repository Id and Category Id
-        mutation = 'mutation {createDiscussion(input: {body: "{body}", title: "{title}", repository: "{repository}", category:"{category}"}) {discussion {id}}}'
+        #TODO: Need to look up Repository Id and Category Id
+        mutation = 'mutation {createDiscussion(input: {repository: ' \
+            + f'"{repository}", category:"{category}", '
 
-    mutation = mutation.replace("{body}", post_body).replace("{title}", title)
+    mutation += f'body: "{post_body}", title: "{title}"}}) {{discussion {{id}}}}}}'
 
     token = os.environ["FASTTRACK_PROJECT_TOKEN"]
     response = requests.post(
