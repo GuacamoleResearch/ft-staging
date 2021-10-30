@@ -103,8 +103,10 @@ def test_get_report_title():
 def test_get_report_discussion_id():
     '''Verifies the get_report_discussion_id function when the results are returned'''
 
-    query_results = { 'data': { 'search': {'nodes': [{'id':1234}] }}}
-    discussion_id = reporting.get_report_discussion_id(query_results)
+    github_wrapper = reporting.GitHubWrapper()
+    github_wrapper.query_results = { 'data': { 'search': {'nodes': [{'id':1234}] }}}
+
+    discussion_id = github_wrapper.get_report_discussion_id()
     assert discussion_id == 1234
 
     # NOTE: We're not testing the "create discussion" case as that is an integration test

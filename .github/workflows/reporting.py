@@ -8,13 +8,21 @@ import requests
 # pylint: disable=C0321
 
 #region Configuration Variables
-ORGANIZATION  = os.environ.get('ORG')  or "GuacamoleResearch"
-PROJECT_NUM   = os.environ.get('PROJ') or 4
-REPOSITORY    = os.environ.get('REPO') or "ft-staging"
-DISCUSSION_ID = os.environ.get('DISC_ID') or "MDEwOkRpc2N1c3Npb24zNTIzOTQy"
 STATUS_MAP    = None
 STATUS_HEADERS= {'':0, '1-Approved':0, '2-Scheduled':0, '3-Delivering':0, '4-Done':0, '5-Archive':0}
-GRAPHQL_QUERY = """
+#endregion
+
+# Debugging in the production instance...
+ORGANIZATION = 'github'
+PROJECT_NUM = 2890
+REPOSITORY = 'FastTrack'
+DISCUSSION_ID = 'MDEwOkRpc2N1c3Npb24zNTI4MTE5'
+#endregion
+
+class GitHubWrapper():
+    '''Wrapper class for GitHub GraphQL interactions'''
+    #region GraphQL Query contstant
+    GRAPHQL_QUERY = """
 {
   search(first: 1 query: "repo:{0}/{1} in:title {3}", type: DISCUSSION) {
     nodes {
@@ -69,35 +77,88 @@ GRAPHQL_QUERY = """
     }
   }
 }"""
+    #endregion
 
-# Debugging in the production instance...
-ORGANIZATION = 'github'
-PROJECT_NUM = 2890
-REPOSITORY = 'FastTrack'
-DISCUSSION_ID = 'MDEwOkRpc2N1c3Npb24zNTI4MTE5'
-#endregion
+    def __init__(self):
+        self.organization   = os.environ.get('ORG')  or "GuacamoleResearch"
+        self.project        = os.environ.get('PROJ') or 4
+        self.repository     = os.environ.get('REPO') or "ft-staging"
+        self.discussion_id  = os.environ.get('DISC_ID') or "MDEwOkRpc2N1c3Npb24zNTIzOTQy"
+        self.token          = os.environ["FASTTRACK_PROJECT_TOKEN"]
+        self.query_results = None
+        # Debug variables
+        self.organization   = 'github'
+        self.project        = 2890
+        self.repository     = 'FastTrack'
+        self.discussion_id  = 'MDEwOkRpc2N1c3Npb24zNTI4MTE5'
 
-#region FUNCTIONS: Build master issue list
-def get_project_data(org, project, repo):
-    '''Returns query results for FastTrack Issues + Memex'''
-    # First, get the report title for this week
-    report_title = 'foo' # get_report_title()
+    def get_project_data(self, report_title):
+        '''Returns query results for FastTrack Issues + Memex'''
+        # Standard Python Format doesn't seem to work with multi-line, so using 'replace'
+        issue_query = self.GRAPHQL_QUERY.replace("{0}", self.organization)\
+            .replace("{1}", str(self.project))\
+            .replace("{2}", self.repository)\
+            .replace("{3}", report_title)
 
-    # Standard Python Format doesn't seem to work with multi-line, so using 'replace'
-    issue_query = GRAPHQL_QUERY.replace("{0}", org).\
-        replace("{1}", str(project)).replace("{2}", repo).replace("{3}", report_title)
+        response = requests.post(
+            'https://api.github.com/graphql',
+            json={'query':issue_query},
+            headers={'Authorization':'bearer '+self.token, \
+                'GraphQL-Features':'projects_next_graphql' }
+        )
+        if response:
+            self.query_results = response.json()
+        return self.query_results
 
-    token = os.environ["FASTTRACK_PROJECT_TOKEN"]
-    response = requests.post(
-        'https://api.github.com/graphql',
-        json={'query':issue_query},
-        headers={'Authorization':'bearer '+token, 'GraphQL-Features':'projects_next_graphql' }
-      )
-    if response:
-        return response.json()
-    else:
+    def get_report_discussion_id(self):
+        '''Get the discussion ID for the report and create if it doesn't exist'''
+        self.discussion_id = self.query_results['data']['search']['nodes'][0]['id'] \
+            if self.query_results['data']['search']['nodes'] \
+            else None
+
+        # Create a discussion if it doesn't exist
+        if not self.discussion_id:
+            #TODO: Create discussion
+            print('No discussion found for the report - need to create one here')
+            self.discussion_id = DISCUSSION_ID # cop out for now...
+
+        return self.discussion_id
+
+    def set_discussion_description(self, title, post_body):
+        '''Update the title and description of a specificed Discussion'''
+        repository = 'TODO'
+        category = 'TODO'
+
+        # Configure the mutation based on input data
+        if self.discussion_id:
+            mutation=f'mutation {{updateDiscussion(input: {{discussionId: "{self.discussion_id}", '
+        else:
+            #TODO: Need to look up Repository Id and Category Id
+            mutation = 'mutation {createDiscussion(input: {repository: ' \
+                + f'"{repository}", category:"{category}", '
+        mutation += f'body: "{post_body}", title: "{title}"}}) {{discussion {{id}}}}}}'
+
+        # Execute the mutation and return the discussion id
+        response = requests.post(
+            'https://api.github.com/graphql',
+            json={'query':mutation},
+            headers={'Authorization':'bearer '+self.token, \
+                'GraphQL-Features':'projects_next_graphql' }
+        )
+        if response:
+            response_data = response.json()["data"]
+            return response_data["updateDiscussion"]["discussion"]["id"] \
+                if response_data["updateDiscussion"] \
+                    else response_data["createDiscussion"]["discussion"]["id"]
+        return -1
+
+    def add_discussion_comment(self, comment_markdown):
+        '''Add a new discussion comment for a given discussion'''
+        #TODO: GraphQL query to add a discussion comment
         return
 
+
+#region FUNCTIONS: Build master issue list
 def merge_issue_data(project_issue_results):
     '''Merges thhe project and issue data in a unified issue list'''
     issue_list = []
@@ -299,19 +360,6 @@ def get_report_title():
     '''Get the title of the report'''
     return 'FastTrack Status Report (week of ' + str(get_monday_date()) + ')'
 
-def get_report_discussion_id(query_results):
-    '''Get the discussion ID for the report and create if it doesn't exist'''
-    discussion_id = query_results['data']['search']['nodes'][0]['id'] \
-        if query_results['data']['search']['nodes'] else None
-
-    # Create a discussion if it doesn't exist
-    if not discussion_id:
-        #TODO: Create discussion
-        print('No discussion found for the report - need to create one here')
-        discussion_id = DISCUSSION_ID # cop out for now...
-
-    return discussion_id
-
 #endregion
 
 #region FUNCTIONS: Utilities
@@ -349,39 +397,6 @@ def count_checklist_for_region(regex, issue_description):
 
     return results
 
-def set_discussion_description(discussion_id, title, post_body):
-    '''Update the title and description of a specificed Discussion'''
-    repository = 'TODO'
-    category = 'TODO'
-
-    # Configure the mutation based on input data
-    if discussion_id:
-        mutation = f'mutation {{updateDiscussion(input: {{discussionId: "{discussion_id}", '
-    else:
-        #TODO: Need to look up Repository Id and Category Id
-        mutation = 'mutation {createDiscussion(input: {repository: ' \
-            + f'"{repository}", category:"{category}", '
-    mutation += f'body: "{post_body}", title: "{title}"}}) {{discussion {{id}}}}}}'
-
-    # Execute the mutation and return the discussion id
-    token = os.environ["FASTTRACK_PROJECT_TOKEN"]
-    response = requests.post(
-        'https://api.github.com/graphql',
-        json={'query':mutation},
-        headers={'Authorization':'bearer '+token, 'GraphQL-Features':'projects_next_graphql' }
-    )
-    if response:
-        response_data = response.json()["data"]
-        return response_data["updateDiscussion"]["discussion"]["id"] \
-            if response_data["updateDiscussion"] \
-                else response_data["createDiscussion"]["discussion"]["id"]
-    return -1
-
-
-def add_discussion_comment(discussion_id, comment_markdown):
-    '''Add a new discussion comment for a given discussion'''
-    return
-
 def get_monday_date(input_date = datetime.datetime.now()):
     '''Returns a Date object containing the Monday preceding (or today) the passed param'''
     # Get the date of the Monday of the given date
@@ -396,14 +411,21 @@ def get_monday_date(input_date = datetime.datetime.now()):
 # Begin Main
 #
 
+gitHub = GitHubWrapper()
+
+# Determine the report title based on current date
+REPORT_TITLE = get_report_title()
+
 # Read issues and summarize issue counts
-issue_data = get_project_data( ORGANIZATION, PROJECT_NUM, REPOSITORY)
-issues = merge_issue_data(issue_data)
+issue_data = gitHub.get_project_data(REPORT_TITLE)
 
 # Get the ID for the report discussion
-report_id = get_report_discussion_id(issue_data)
+report_id = gitHub.get_report_discussion_id()
 
-# Build Status report
+# Process the query resultws into usable issue data
+issues = merge_issue_data(issue_data)
+
+# Build Status report markdown
 issue_details_md = get_issue_details(issues)
 region_summary_md = get_issue_summary(issues, ['AMER','APAC','EMEA'])
 travel_smmary_md = get_issue_summary(issues, [':house:',':airplane:'])
@@ -414,12 +436,13 @@ body = '## Regional Summary\n*Last Updated: ' + str(datetime.date.today()) +\
     '*\n\n' + region_summary_md +\
     '\n\n## Travel Summary\n\n' + travel_smmary_md +\
     '\n\n## Request Details\n\n' + issue_details_md
-TITLE = get_report_title()
 
-print(TITLE)
+# Update the discussion description
+print(REPORT_TITLE)
 print(body)
-discussion_identifier = set_discussion_description(DISCUSSION_ID, TITLE, body)
+discussion_identifier = gitHub.set_discussion_description(REPORT_TITLE, body)
 
+# Add an exception report comment to the discussion
 discussion_comment = f'## Exceptions as of {datetime.datetime.utcnow()} UTC\n{exception_md}'
 print(discussion_comment)
-add_discussion_comment(discussion_identifier, discussion_comment)
+gitHub.add_discussion_comment(discussion_comment)
