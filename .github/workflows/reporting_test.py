@@ -3,7 +3,7 @@ import datetime as dt
 import reporting
 
 #
-# Unit Test - dates_from_issue_title
+# Unit Test - ReportUtilities.dates_from_issue_title
 def test_dates_from_issue_title():
     '''Tests the dates_from_issue_title function'''
     title = 'Contoso (12/30-12/31)'
@@ -20,7 +20,7 @@ def test_dates_from_issue_title():
     assert results['finish'] == dt.date(year+1, 2, 1)
 
 #
-# Unit Test - count_checklist
+# Unit Test - ReportUtilities.count_checklist
 def test_count_checklist():
     '''Verified the count_checklist function'''
     #region long string
@@ -44,7 +44,7 @@ def test_count_checklist():
 """
 #endregion
 
-    results = reporting.count_checklist(description)
+    results = reporting.ReportUtilities.count_checklist(description)
     assert results['pre']['checked'] == 2
     assert results['pre']['unchecked'] == 1
     assert results['delivery']['checked'] == 1
@@ -52,13 +52,13 @@ def test_count_checklist():
     assert results['post']['checked'] == 1
     assert results['post']['unchecked'] == 1
 
-    results = reporting.count_checklist("Bad\nPre-engagement\nChecklist")
+    results = reporting.ReportUtilities.count_checklist("Bad\nPre-engagement\nChecklist")
     assert results['pre'] is None
     assert results['delivery'] is None
     assert results['post'] is None
 
 #
-# Unit Test - format_url
+# Unit Test - ReportUtilities.format_url
 def test_format_url():
     '''Verifies the format_url function'''
     results = reporting.ReportUtilities.format_url('test-org', 'test-repo', 1)
@@ -68,7 +68,7 @@ def test_format_url():
     assert results == 'https://github.com///issues/0'
 
 #
-# Unit Test - get_monday_date
+# Unit Test - ReportUtilities.get_monday_date
 def test_get_monday_date():
     '''Verifies the get_monday_date function'''
     # Sunday at midnight returns last Monday
@@ -89,7 +89,7 @@ def test_get_monday_date():
     assert results > dt.datetime.now().date() - dt.timedelta(days=8)
 
 #
-# Unit Test - get_report_title
+# Unit Test - ReportUtilities.get_report_title
 def test_get_report_title():
     '''Verifies the get_report_title function'''
     title = reporting.ReportUtilities.get_report_title()
@@ -99,7 +99,7 @@ def test_get_report_title():
     assert len(title) == len('FastTrack Status Report (week of ') + 11
 
 #
-# Unit Test - get_report_discussion_id
+# Unit Test - GitHubWrapper.get_report_discussion_id
 def test_get_report_discussion_id():
     '''Verifies the get_report_discussion_id function when the results are returned'''
 

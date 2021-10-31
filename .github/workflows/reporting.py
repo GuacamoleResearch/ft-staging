@@ -197,6 +197,42 @@ class ReportUtilities():
         results = input_date - datetime.timedelta(days=input_date.weekday())
         return results.date() if isinstance(results, datetime.datetime) else results
 
+    @staticmethod
+    def count_checklist(issue_description):
+        '''Parse the issue description to count "[ ]" and "[x]" per checklist'''
+        # Pre-engagement Regex - "### Pre((.|\n)*)### Del"
+        preengagement = ReportUtilities.count_checklist_for_region( \
+            "### Pre((.|\n)*)### Del", issue_description)
+
+        # Delivery Regex - "### Pel((.|\n)*)### Post"
+        delivery = ReportUtilities.count_checklist_for_region( \
+            "### Del((.|\n)*)### Post", issue_description)
+
+        # Post-engagement Regex - "### Post((.|\n)*)$"
+        postengagement = ReportUtilities.count_checklist_for_region( \
+            "### Post((.|\n)*)$", issue_description)
+
+        results = {'pre':preengagement, 'delivery': delivery, 'post': postengagement}
+        return results
+
+    @staticmethod
+    def count_checklist_for_region(regex, issue_description):
+        '''Performs the actual [x] parsing for an individual segment of the overall checklist'''
+        checked = 0
+        unchecked = 0
+        try:
+            checklist_block = re.search(regex, issue_description).group()
+            unchecked = re.findall(r'- \[ \]', checklist_block)
+            checked = re.findall(r'- \[x\]', checklist_block, re.IGNORECASE)
+            results = { 'checked': checked.count('- [x]') + checked.count('- [X]'), \
+                'unchecked': unchecked.count('- [ ]')}
+        except AttributeError:
+            print("*** Missing checklist block for regex ", regex)
+            results = None
+
+        return results
+
+
 #region FUNCTIONS: Build master issue list
 def merge_issue_data(project_issue_results):
     '''Merges thhe project and issue data in a unified issue list'''
@@ -337,7 +373,7 @@ def process_exceptions(issues_list, issue):
         if issue.get('Followup') else datetime.datetime.now()
     issue_title = issue['Title']
     issue_id = issue['Number']
-    checklists = count_checklist(issue['Body'])
+    checklists = ReportUtilities.count_checklist(issue['Body'])
 
     # Process global exceptions then exceptions for each status
     if (checklists is None) or (checklists['pre'] is None) \
@@ -381,35 +417,6 @@ def add_exception(issues_list, assignees, issue_title, issue_id, message):
 #endregion
 
 #region FUNCTIONS: Utilities
-def count_checklist(issue_description):
-    '''Parse the issue description to count "[ ]" and "[x]" per checklist'''
-    # Pre-engagement Regex - "### Pre((.|\n)*)### Del"
-    preengagement = count_checklist_for_region("### Pre((.|\n)*)### Del", issue_description)
-
-    # Delivery Regex - "### Pel((.|\n)*)### Post"
-    delivery = count_checklist_for_region("### Del((.|\n)*)### Post", issue_description)
-
-    # Post-engagement Regex - "### Post((.|\n)*)$"
-    postengagement = count_checklist_for_region("### Post((.|\n)*)$", issue_description)
-
-    results = {'pre':preengagement, 'delivery': delivery, 'post': postengagement}
-    return results
-
-def count_checklist_for_region(regex, issue_description):
-    '''Performs the actual [x] parsing for an individual segment of the overall checklist'''
-    checked = 0
-    unchecked = 0
-    try:
-        checklist_block = re.search(regex, issue_description).group()
-        unchecked = re.findall(r'- \[ \]', checklist_block)
-        checked = re.findall(r'- \[x\]', checklist_block, re.IGNORECASE)
-        results = { 'checked': checked.count('- [x]') + checked.count('- [X]'), \
-            'unchecked': unchecked.count('- [ ]')}
-    except AttributeError:
-        print("*** Missing checklist block for regex ", regex)
-        results = None
-
-    return results
 
 #endregion
 
