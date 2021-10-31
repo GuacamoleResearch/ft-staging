@@ -7,14 +7,14 @@ import reporting
 def test_dates_from_issue_title():
     '''Tests the dates_from_issue_title function'''
     title = 'Contoso (12/30-12/31)'
-    results = reporting.dates_from_issue_title(title)
+    results = reporting.ReportUtilities.dates_from_issue_title(title)
     year = dt.date.today().year
     assert results['start'] == dt.date(year, 12, 30)
     assert results['finish'] == dt.date(year, 12, 31)
 
     # Crossing year boundaries
     title = 'Tailwinds (12/1-2/1)'
-    results = reporting.dates_from_issue_title(title)
+    results = reporting.ReportUtilities.dates_from_issue_title(title)
     year = dt.date.today().year
     assert results['start'] == dt.date(year, 12, 1)
     assert results['finish'] == dt.date(year+1, 2, 1)
@@ -61,10 +61,10 @@ def test_count_checklist():
 # Unit Test - format_url
 def test_format_url():
     '''Verifies the format_url function'''
-    results = reporting.format_url('test-org', 'test-repo', 1)
+    results = reporting.ReportUtilities.format_url('test-org', 'test-repo', 1)
     assert results == 'https://github.com/test-org/test-repo/issues/1'
 
-    results = reporting.format_url('', '', 0)
+    results = reporting.ReportUtilities.format_url('', '', 0)
     assert results == 'https://github.com///issues/0'
 
 #
@@ -72,19 +72,19 @@ def test_format_url():
 def test_get_monday_date():
     '''Verifies the get_monday_date function'''
     # Sunday at midnight returns last Monday
-    results = reporting.get_monday_date(dt.date(2021, 7, 4))
+    results = reporting.ReportUtilities.get_monday_date(dt.date(2021, 7, 4))
     assert results == dt.date(2021, 6, 28)
 
     # Monday at mid-day returns today at midnight
-    results = reporting.get_monday_date(dt.datetime(2021, 7, 5, 12, 34, 56))
+    results = reporting.ReportUtilities.get_monday_date(dt.datetime(2021, 7, 5, 12, 34, 56))
     assert results == dt.date(2021, 7, 5)
 
     # Tuesday at midnight returns the previous day
-    results = reporting.get_monday_date(dt.date(2021, 7, 6))
+    results = reporting.ReportUtilities.get_monday_date(dt.date(2021, 7, 6))
     assert results == dt.date(2021, 7, 5)
 
     # Current date/time returns a valid date in the past but less than 8-days in the past
-    results = reporting.get_monday_date() # Default param is now()
+    results = reporting.ReportUtilities.get_monday_date() # Default param is now()
     assert results < dt.datetime.now().date()
     assert results > dt.datetime.now().date() - dt.timedelta(days=8)
 
@@ -92,7 +92,7 @@ def test_get_monday_date():
 # Unit Test - get_report_title
 def test_get_report_title():
     '''Verifies the get_report_title function'''
-    title = reporting.get_report_title()
+    title = reporting.ReportUtilities.get_report_title()
     print(title)
     assert title.startswith('FastTrack Status Report (week of ')
     assert title.endswith(')')

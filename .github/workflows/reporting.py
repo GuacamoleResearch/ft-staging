@@ -155,8 +155,47 @@ class GitHubWrapper():
     def add_discussion_comment(self, comment_markdown):
         '''Add a new discussion comment for a given discussion'''
         #TODO: GraphQL query to add a discussion comment
+        print(f"TODO - Add comment:\n{comment_markdown}")
         return
 
+class ReportUtilities():
+    '''Collection of functions used for string parsing'''
+    @staticmethod
+    def dates_from_issue_title(title):
+        '''Parses start and end dates'''
+        try:
+            date_range_strings = title.rsplit("(")[1].split(")")[0].split("-")
+            date_range = []
+            for date_string in date_range_strings:
+                parts = date_string.split("/")
+                if len(parts) == 2:
+                    parts.append(str(datetime.date.today().year))
+                the_date = datetime.date(int(parts[2]), int(parts[0]), int(parts[1]))
+                date_range.append(the_date)
+            if date_range[1] < date_range[0]:
+                date_range[1] = datetime.date( \
+                    date_range[1].year+1, date_range[1].month, date_range[1].day)
+            return {"start": date_range[0], "finish": date_range[1]}
+        except (IndexError, ValueError):
+            print(f"Error parsing dates for '{title}'")
+            return {"start": None, "finish": None}
+
+    @staticmethod
+    def get_report_title():
+        '''Get the title of the report'''
+        return 'FastTrack Status Report (week of ' + str(ReportUtilities.get_monday_date()) + ')'
+
+    @staticmethod
+    def format_url(org, repo, issue_id):
+        '''Returns markdown for a link with the title for a given issue'''
+        return f'https://github.com/{org}/{repo}/issues/{issue_id}'
+
+    @staticmethod
+    def get_monday_date(input_date = datetime.datetime.now()):
+        '''Returns a Date object containing the Monday preceding (or today) the passed param'''
+        # Get the date of the Monday of the given date
+        results = input_date - datetime.timedelta(days=input_date.weekday())
+        return results.date() if isinstance(results, datetime.datetime) else results
 
 #region FUNCTIONS: Build master issue list
 def merge_issue_data(project_issue_results):
@@ -176,7 +215,7 @@ def merge_issue_data(project_issue_results):
             if node.get('assignees') else []
 
         # Add dates from title if they're available
-        dates = dates_from_issue_title(issue['Title'])
+        dates = ReportUtilities.dates_from_issue_title(issue['Title'])
         issue['Start_Date'] = dates['start']
         issue['End_Date']   = dates['finish']
 
@@ -198,24 +237,6 @@ def merge_issue_data(project_issue_results):
                 issue['Status'] = ''
 
     return issue_list
-
-def dates_from_issue_title(title):
-    '''Parses start and end dates'''
-    try:
-        date_range_strings = title.rsplit("(")[1].split(")")[0].split("-")
-        date_range = []
-        for date_string in date_range_strings:
-            parts = date_string.split("/")
-            if len(parts) == 2:
-                parts.append(str(datetime.date.today().year))
-            the_date = datetime.date(int(parts[2]), int(parts[0]), int(parts[1]))
-            date_range.append(the_date)
-        if date_range[1] < date_range[0]:
-            date_range[1] = datetime.date( \
-                date_range[1].year+1, date_range[1].month, date_range[1].day)
-        return {"start": date_range[0], "finish": date_range[1]}
-    except:
-        return {"start": None, "finish": None}
 
 def map_status_field(query_results, issue):
     '''Converts status IDs into status text'''
@@ -274,7 +295,7 @@ def get_issue_details(all_issues):
     issue_details = ''
     for status in STATUS_MAP:
         for issue in all_issues:
-            issue_link = format_url(ORGANIZATION, REPOSITORY, issue['Number'])
+            issue_link = ReportUtilities.format_url(ORGANIZATION, REPOSITORY, issue['Number'])
             if not status_list.get(status['name']):
                 status_list[status['name']] = []
             if issue.get('Status') and status['name'] == issue['Status']:
@@ -353,20 +374,13 @@ def add_exception(issues_list, assignees, issue_title, issue_id, message):
         if not issues_list.get(assignee):
             issues_list[assignee] = []
 
-        issue_link = '[' + issue_title + '](' + format_url(ORGANIZATION, REPOSITORY, issue_id) +')'
+        issue_link = '[' + issue_title + '](' \
+            + ReportUtilities.format_url(ORGANIZATION, REPOSITORY, issue_id) +')'
         issues_list[assignee].append('- ' + message.replace('{issue_link}', issue_link))
-
-def get_report_title():
-    '''Get the title of the report'''
-    return 'FastTrack Status Report (week of ' + str(get_monday_date()) + ')'
 
 #endregion
 
 #region FUNCTIONS: Utilities
-def format_url(org, repo, issue_id):
-    '''Returns markdown for a link with the title for a given issue'''
-    return f'https://github.com/{org}/{repo}/issues/{issue_id}'
-
 def count_checklist(issue_description):
     '''Parse the issue description to count "[ ]" and "[x]" per checklist'''
     # Pre-engagement Regex - "### Pre((.|\n)*)### Del"
@@ -391,17 +405,11 @@ def count_checklist_for_region(regex, issue_description):
         checked = re.findall(r'- \[x\]', checklist_block, re.IGNORECASE)
         results = { 'checked': checked.count('- [x]') + checked.count('- [X]'), \
             'unchecked': unchecked.count('- [ ]')}
-    except:
+    except AttributeError:
         print("*** Missing checklist block for regex ", regex)
         results = None
 
     return results
-
-def get_monday_date(input_date = datetime.datetime.now()):
-    '''Returns a Date object containing the Monday preceding (or today) the passed param'''
-    # Get the date of the Monday of the given date
-    results = input_date - datetime.timedelta(days=input_date.weekday())
-    return results.date() if isinstance(results, datetime.datetime) else results
 
 #endregion
 
@@ -414,7 +422,7 @@ def get_monday_date(input_date = datetime.datetime.now()):
 gitHub = GitHubWrapper()
 
 # Determine the report title based on current date
-REPORT_TITLE = get_report_title()
+REPORT_TITLE = ReportUtilities.get_report_title()
 
 # Read issues and summarize issue counts
 issue_data = gitHub.get_project_data(REPORT_TITLE)
